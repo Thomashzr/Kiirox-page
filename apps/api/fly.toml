@@ -1,11 +1,12 @@
 app = "kiirox-api"
-primary_region = "eze" # Ezeiza (Buenos Aires)
+primary_region = "gru" # São Paulo (same region as Neon sa-east-1)
 
 [build]
   dockerfile = "Dockerfile"
 
 [env]
   PORT = "4000"
+  CORS_ORIGINS = "*"
 
 [http_service]
   internal_port = 4000
@@ -16,10 +17,10 @@ primary_region = "eze" # Ezeiza (Buenos Aires)
   processes = ["app"]
 
 [[http_service.checks]]
-  grace_period = "10s"
-  interval = "30s"
+  grace_period = "30s"
+  interval = "15s"
   method = "GET"
-  timeout = "5s"
+  timeout = "10s"
   path = "/health"
 
 [[vm]]

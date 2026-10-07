@@ -25,7 +25,7 @@ RUN addgroup -S app && adduser -S app -G app
 # Copy compiled shipment from builder
 COPY --from=build /app/build/erlang-shipment /app
 
-RUN chown -R app:app /app
+RUN chown -R app:app /app && chmod +x /app/entrypoint.sh
 
 USER app
 
@@ -33,5 +33,5 @@ EXPOSE 4000
 
 ENV PORT=4000
 
-ENTRYPOINT ["/app/entrypoint.sh"]
+ENTRYPOINT ["/bin/sh", "/app/entrypoint.sh"]
 CMD ["run"]

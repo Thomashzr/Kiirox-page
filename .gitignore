@@ -44,4 +44,6 @@ Thumbs.db
 .cache/
 tmp/
 .neon
+.vercel/
 erl_crash.dump
+
