@@ -1,5 +1,6 @@
 -module(db_ffi).
--export([start_pool/1]).
+-export([start_pool/1, decode_jwt_payload/1]).
+
 
 -include_lib("pog/include/pog_Config.hrl").
 
@@ -68,3 +69,22 @@ start_pool(Config) ->
         none -> Options1
     end,
     pgo_pool:start_link(PoolName, Options2).
+
+decode_jwt_payload(Token) ->
+    case binary:split(Token, <<".">>, [global]) of
+        [_Header, Payload | _Rest] ->
+            Padded = case byte_size(Payload) rem 4 of
+                2 -> <<Payload/binary, "==">>;
+                3 -> <<Payload/binary, "=">>;
+                _ -> Payload
+            end,
+            Normalized = binary:replace(binary:replace(Padded, <<"-">>, <<"+">>, [global]), <<"_">>, <<"/">>, [global]),
+            try base64:decode(Normalized) of
+                Decoded -> {ok, Decoded}
+            catch
+                _:_ -> {error, nil}
+            end;
+        _ ->
+            {error, nil}
+    end.
+

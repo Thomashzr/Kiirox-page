@@ -1,4 +1,8 @@
 import config
+import domain/admin.{
+  type AdminRepository, AdminRepository, AdminUser, SuperAdmin, Unauthorized,
+}
+
 import domain/catalog.{type CatalogRepository, type StoreConfig, StoreConfig}
 import domain/category.{Category}
 import domain/product.{Product, ProductImage, Published}
@@ -6,6 +10,7 @@ import gleam/erlang/process
 import gleam/int
 import gleam/io
 import gleam/option.{None, Some}
+import infrastructure/admin_postgres
 import infrastructure/catalog_in_memory
 import infrastructure/catalog_postgres
 import infrastructure/database
@@ -15,6 +20,7 @@ import mist
 import web/router
 import wisp
 import wisp/wisp_mist
+
 
 pub fn main() -> Nil {
   io.println("=== KIIROX API Starting ===")
@@ -40,10 +46,10 @@ pub fn main() -> Nil {
       currency: "ARS",
     )
 
-  let repo = case cfg.database_url {
+  let #(repo, admin_repo) = case cfg.database_url {
     "" -> {
       io.println("No DATABASE_URL configured. Starting with in-memory catalog.")
-      make_fallback_repo(store_cfg)
+      #(make_fallback_repo(store_cfg), make_fallback_admin_repo())
     }
     db_url -> {
       io.println("Connecting to Neon PostgreSQL...")
@@ -54,19 +60,23 @@ pub fn main() -> Nil {
             #("001_initial_schema", schema.migration_001_initial_schema),
           ]
           let _ = migrations.run_all(conn, migration_list)
-          catalog_postgres.new(conn, store_cfg)
+          #(
+            catalog_postgres.new(conn, store_cfg),
+            admin_postgres.new(conn),
+          )
         }
         Error(err) -> {
           io.println("PostgreSQL connection error: " <> err)
           io.println("Falling back to in-memory catalog for local execution.")
-          make_fallback_repo(store_cfg)
+          #(make_fallback_repo(store_cfg), make_fallback_admin_repo())
         }
       }
     }
   }
 
   let secret_key_base = wisp.random_string(64)
-  let handler = fn(req) { router.handle_request(req, repo) }
+  let handler = fn(req) { router.handle_request(req, repo, admin_repo) }
+
 
   let assert Ok(_) =
     handler
@@ -217,3 +227,26 @@ fn make_fallback_repo(store_cfg: StoreConfig) -> CatalogRepository {
 
   catalog_in_memory.new(categories, products, store_cfg)
 }
+
+fn make_fallback_admin_repo() -> AdminRepository {
+  let fallback_admin =
+    AdminUser(
+      id: "admin-superadmin-01",
+      clerk_user_id: "",
+      email: "thomasheinzergz@gmail.com",
+      role: SuperAdmin,
+      is_active: True,
+      created_at: "2026-10-07T00:00:00Z",
+      updated_at: "2026-10-07T00:00:00Z",
+    )
+  AdminRepository(
+    find_admin_by_clerk_id: fn(_) { Ok(fallback_admin) },
+    find_admin_by_email: fn(email) {
+      case email == "thomasheinzergz@gmail.com" {
+        True -> Ok(fallback_admin)
+        False -> Error(Unauthorized("Administrador no autorizado"))
+      }
+    },
+  )
+}
+

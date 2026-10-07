@@ -1,3 +1,4 @@
+import domain/admin.{type AdminRepository}
 import domain/catalog.{
   type CatalogError, type CatalogRepository, type ProductFilters,
   CategoryNotFound, DatabaseError, InvalidFilter, ProductFilters,
@@ -10,21 +11,31 @@ import gleam/list
 import gleam/option
 import gleam/result
 import infrastructure/json_encoders
+import web/admin_handlers
 import wisp.{type Request, type Response}
 
-pub fn handle_request(req: Request, repo: CatalogRepository) -> Response {
+pub fn handle_request(
+  req: Request,
+  repo: CatalogRepository,
+  admin_repo: AdminRepository,
+) -> Response {
   use <- wisp.rescue_crashes
   use req <- wisp.handle_head(req)
 
   case req.method {
     http.Options -> handle_cors_preflight()
     _ ->
-      route(req, repo)
+      route(req, repo, admin_repo)
       |> add_cors_headers()
   }
 }
 
-fn route(req: Request, repo: CatalogRepository) -> Response {
+fn route(
+  req: Request,
+  repo: CatalogRepository,
+  admin_repo: AdminRepository,
+) -> Response {
+
   case wisp.path_segments(req) {
     ["health"] -> handle_health()
     ["api", "v1", "health"] -> handle_health()
@@ -86,6 +97,12 @@ fn route(req: Request, repo: CatalogRepository) -> Response {
       |> json.to_string
       |> wisp.json_response(200)
     }
+
+    ["api", "v1", "admin", "me"] -> {
+      use <- wisp.require_method(req, http.Get)
+      admin_handlers.handle_admin_me(req, admin_repo)
+    }
+
 
     _ ->
       json.object([

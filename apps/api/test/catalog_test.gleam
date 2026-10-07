@@ -1,3 +1,6 @@
+import domain/admin.{
+  type AdminRepository, AdminRepository, AdminUser, SuperAdmin, Unauthorized,
+}
 import domain/catalog.{
   type CatalogRepository, CategoryNotFound, ProductFilters, ProductNotFound,
   StoreConfig, default_filters,
@@ -13,6 +16,34 @@ import gleam/string
 import infrastructure/catalog_in_memory
 import web/router
 import wisp/simulate
+
+fn dummy_admin_repo() -> AdminRepository {
+  let admin =
+    AdminUser(
+      id: "admin-test-01",
+      clerk_user_id: "user_test_clerk",
+      email: "thomasheinzergz@gmail.com",
+      role: SuperAdmin,
+      is_active: True,
+      created_at: "2026-10-07T00:00:00Z",
+      updated_at: "2026-10-07T00:00:00Z",
+    )
+  AdminRepository(
+    find_admin_by_clerk_id: fn(id) {
+      case id == "user_test_clerk" {
+        True -> Ok(admin)
+        False -> Error(Unauthorized("No autorizado"))
+      }
+    },
+    find_admin_by_email: fn(email) {
+      case email == "thomasheinzergz@gmail.com" {
+        True -> Ok(admin)
+        False -> Error(Unauthorized("No autorizado"))
+      }
+    },
+  )
+}
+
 
 fn setup_test_catalog() -> #(CatalogRepository, List(Category), List(Product)) {
   let cat1 =
@@ -220,8 +251,9 @@ pub fn get_category_products_test() {
 // Router HTTP integration tests
 pub fn http_health_endpoint_test() {
   let #(repo, _, _) = setup_test_catalog()
+  let admin_repo = dummy_admin_repo()
   let req = simulate.request(http.Get, "/health")
-  let res = router.handle_request(req, repo)
+  let res = router.handle_request(req, repo, admin_repo)
 
   assert res.status == 200
   let body = simulate.read_body(res)
@@ -231,8 +263,9 @@ pub fn http_health_endpoint_test() {
 
 pub fn http_public_config_endpoint_test() {
   let #(repo, _, _) = setup_test_catalog()
+  let admin_repo = dummy_admin_repo()
   let req = simulate.request(http.Get, "/api/v1/config/public")
-  let res = router.handle_request(req, repo)
+  let res = router.handle_request(req, repo, admin_repo)
 
   assert res.status == 200
   let body = simulate.read_body(res)
@@ -242,8 +275,9 @@ pub fn http_public_config_endpoint_test() {
 
 pub fn http_categories_endpoint_test() {
   let #(repo, _, _) = setup_test_catalog()
+  let admin_repo = dummy_admin_repo()
   let req = simulate.request(http.Get, "/api/v1/categories")
-  let res = router.handle_request(req, repo)
+  let res = router.handle_request(req, repo, admin_repo)
 
   assert res.status == 200
   let body = simulate.read_body(res)
@@ -253,8 +287,9 @@ pub fn http_categories_endpoint_test() {
 
 pub fn http_products_endpoint_test() {
   let #(repo, _, _) = setup_test_catalog()
+  let admin_repo = dummy_admin_repo()
   let req = simulate.request(http.Get, "/api/v1/products")
-  let res = router.handle_request(req, repo)
+  let res = router.handle_request(req, repo, admin_repo)
 
   assert res.status == 200
   let body = simulate.read_body(res)
@@ -265,17 +300,18 @@ pub fn http_products_endpoint_test() {
 
 pub fn http_product_by_slug_endpoint_test() {
   let #(repo, _, _) = setup_test_catalog()
+  let admin_repo = dummy_admin_repo()
 
   // 200 OK for existing product
   let req = simulate.request(http.Get, "/api/v1/products/gel-maurten-100")
-  let res = router.handle_request(req, repo)
+  let res = router.handle_request(req, repo, admin_repo)
   assert res.status == 200
   let body = simulate.read_body(res)
   assert string.contains(body, "Gel Maurten 100")
 
   // 404 for missing product
   let req_404 = simulate.request(http.Get, "/api/v1/products/no-existe")
-  let res_404 = router.handle_request(req_404, repo)
+  let res_404 = router.handle_request(req_404, repo, admin_repo)
   assert res_404.status == 404
   let body_404 = simulate.read_body(res_404)
   assert string.contains(body_404, "PRODUCT_NOT_FOUND")
@@ -283,17 +319,18 @@ pub fn http_product_by_slug_endpoint_test() {
 
 pub fn http_category_products_endpoint_test() {
   let #(repo, _, _) = setup_test_catalog()
+  let admin_repo = dummy_admin_repo()
 
   // 200 OK for valid category
   let req = simulate.request(http.Get, "/api/v1/categories/geles-energeticos/products")
-  let res = router.handle_request(req, repo)
+  let res = router.handle_request(req, repo, admin_repo)
   assert res.status == 200
   let body = simulate.read_body(res)
   assert string.contains(body, "gel-maurten-100")
 
   // 404 for missing category
   let req_404 = simulate.request(http.Get, "/api/v1/categories/no-existe/products")
-  let res_404 = router.handle_request(req_404, repo)
+  let res_404 = router.handle_request(req_404, repo, admin_repo)
   assert res_404.status == 404
   let body_404 = simulate.read_body(res_404)
   assert string.contains(body_404, "CATEGORY_NOT_FOUND")
@@ -301,8 +338,9 @@ pub fn http_category_products_endpoint_test() {
 
 pub fn http_cors_options_test() {
   let #(repo, _, _) = setup_test_catalog()
+  let admin_repo = dummy_admin_repo()
   let req = simulate.request(http.Options, "/api/v1/products")
-  let res = router.handle_request(req, repo)
+  let res = router.handle_request(req, repo, admin_repo)
 
   assert res.status == 204
   assert list.key_find(res.headers, "access-control-allow-origin") == Ok("*")
@@ -310,10 +348,23 @@ pub fn http_cors_options_test() {
 
 pub fn http_not_found_endpoint_test() {
   let #(repo, _, _) = setup_test_catalog()
+  let admin_repo = dummy_admin_repo()
   let req = simulate.request(http.Get, "/api/v1/inexistente")
-  let res = router.handle_request(req, repo)
+  let res = router.handle_request(req, repo, admin_repo)
 
   assert res.status == 404
   let body = simulate.read_body(res)
   assert string.contains(body, "NOT_FOUND")
 }
+
+pub fn http_admin_me_missing_token_test() {
+  let #(repo, _, _) = setup_test_catalog()
+  let admin_repo = dummy_admin_repo()
+  let req = simulate.request(http.Get, "/api/v1/admin/me")
+  let res = router.handle_request(req, repo, admin_repo)
+
+  assert res.status == 401
+  let body = simulate.read_body(res)
+  assert string.contains(body, "UNAUTHORIZED")
+}
+

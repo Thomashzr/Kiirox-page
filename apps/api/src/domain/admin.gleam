@@ -29,3 +29,17 @@ pub type AdminUser {
     updated_at: String,
   )
 }
+
+pub type AdminError {
+  Unauthorized(String)
+  Forbidden(String)
+  DatabaseError(String)
+}
+
+pub type AdminRepository {
+  AdminRepository(
+    find_admin_by_clerk_id: fn(String) -> Result(AdminUser, AdminError),
+    find_admin_by_email: fn(String) -> Result(AdminUser, AdminError),
+  )
+}
+

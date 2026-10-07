@@ -1,3 +1,4 @@
+import domain/admin.{type AdminUser, role_to_string}
 import domain/catalog.{
   type CatalogError, type Paginated, type StoreConfig, CategoryNotFound,
   DatabaseError, InvalidFilter, ProductNotFound,
@@ -6,6 +7,19 @@ import domain/category.{type Category}
 import domain/product.{type Product, type ProductImage, status_to_string}
 import gleam/json.{type Json}
 import gleam/option.{type Option, None, Some}
+
+pub fn admin_user_to_json(admin: AdminUser) -> Json {
+  json.object([
+    #("id", json.string(admin.id)),
+    #("clerk_user_id", json.string(admin.clerk_user_id)),
+    #("email", json.string(admin.email)),
+    #("role", json.string(role_to_string(admin.role))),
+    #("is_active", json.bool(admin.is_active)),
+    #("created_at", json.string(admin.created_at)),
+    #("updated_at", json.string(admin.updated_at)),
+  ])
+}
+
 
 pub fn category_to_json(cat: Category) -> Json {
   json.object([
