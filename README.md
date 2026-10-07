@@ -2,7 +2,15 @@
 
 Plataforma web comercial para la venta de suplementos deportivos, running y accesorios.
 
+## 🌐 Despliegues en Vivo
+
+- **Tienda Pública**: [https://kiirox.vercel.app](https://kiirox.vercel.app)
+- **Panel Administrador**: [https://kiirox.vercel.app/admin](https://kiirox.vercel.app/admin)
+- **API Backend**: [https://kiirox-api.fly.dev](https://kiirox-api.fly.dev)
+- **Bitácora de Decisiones y Progreso**: [`.docs/11-DECISIONS-AND-PROGRESS.md`](.docs/11-DECISIONS-AND-PROGRESS.md)
+
 ## Stack Oficial
+
 
 - **Frontend**: Next.js 15+ (React, Tailwind CSS, TypeScript, shadcn/ui) en **Vercel**
 - **Backend**: Gleam (compilado a Erlang/BEAM con Wisp + Mist) en **Fly.io**
