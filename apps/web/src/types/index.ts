@@ -44,3 +44,16 @@ export interface StoreConfig {
   whatsapp_number: string;
   currency: string;
 }
+
+export interface CartItem {
+  product_id: string;
+  name: string;
+  sku: string;
+  price: number;
+  currency: string;
+  quantity: number;
+  image_url: string | null;
+  stock: number;
+  slug: string;
+}
+

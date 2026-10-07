@@ -3,12 +3,14 @@
 import React, { useState, useMemo } from 'react';
 import { Category, Product } from '../types';
 import { ProductModal } from './product-modal';
+import { useCart } from '../context/cart-context';
 import {
   MagnifyingGlass,
   SlidersHorizontal,
   X,
   ArrowRight,
   Eye,
+  Plus,
 } from '@phosphor-icons/react';
 
 interface CatalogSectionProps {
@@ -22,7 +24,9 @@ export function CatalogSection({
   products,
   whatsappNumber = '+5491100000000',
 }: CatalogSectionProps) {
+  const { addItem } = useCart();
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
+
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [onlyFeatured, setOnlyFeatured] = useState<boolean>(false);
   const [onlyInStock, setOnlyInStock] = useState<boolean>(false);
@@ -273,18 +277,36 @@ export function CatalogSection({
                   </div>
 
                   {/* Price & Action */}
-                  <div className="pt-3 border-t border-zinc-100 dark:border-zinc-900 flex items-center justify-between">
-                    <span className="font-mono font-bold text-base text-black dark:text-white">
-                      {formattedPrice}
-                    </span>
-                    <button
-                      type="button"
-                      className="inline-flex items-center gap-1 text-xs font-mono uppercase font-bold text-zinc-600 dark:text-zinc-400 group-hover:text-black dark:group-hover:text-white transition-colors"
-                    >
-                      <span>Detalle</span>
-                      <ArrowRight size={13} weight="bold" />
-                    </button>
+                  <div className="pt-3 border-t border-zinc-100 dark:border-zinc-900 flex items-center justify-between gap-2">
+                    <div>
+                      <span className="font-mono font-bold text-base text-black dark:text-white">
+                        {formattedPrice}
+                      </span>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      {product.stock > 0 ? (
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            addItem(product, 1);
+                          }}
+                          className="inline-flex items-center gap-1 px-2.5 py-1.5 bg-black dark:bg-white text-white dark:text-black text-[11px] font-mono uppercase font-bold tracking-wider hover:bg-zinc-800 dark:hover:bg-zinc-200 transition-colors shadow-sm cursor-pointer"
+                          title="Agregar 1 unidad al carrito"
+                          aria-label={`Agregar 1 unidad de ${product.name} al carrito`}
+                        >
+                          <Plus size={12} weight="bold" />
+                          <span>Agregar</span>
+                        </button>
+                      ) : (
+                        <span className="text-[10px] font-mono uppercase text-zinc-400 dark:text-zinc-500 px-2 py-1 bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800">
+                          Agotado
+                        </span>
+                      )}
+                    </div>
                   </div>
+
                 </div>
               );
             })}

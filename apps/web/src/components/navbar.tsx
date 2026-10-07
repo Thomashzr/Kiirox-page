@@ -3,13 +3,16 @@
 import React, { Suspense } from 'react';
 import { SignInButton, SignUpButton, Show, UserButton } from '@clerk/nextjs';
 import { BrandLogo } from './brand-logo';
-import { WhatsappLogo } from '@phosphor-icons/react';
+import { WhatsappLogo, ShoppingBag } from '@phosphor-icons/react';
+import { useCart } from '../context/cart-context';
 
 interface NavbarProps {
   whatsappNumber?: string;
 }
 
 export function Navbar({ whatsappNumber = '+5491100000000' }: NavbarProps) {
+  const { totalItems, openDrawer } = useCart();
+
   return (
     <header className="sticky top-0 z-40 w-full border-b border-zinc-200 dark:border-zinc-800 bg-white/90 dark:bg-black/90 backdrop-blur-md transition-colors">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
@@ -53,6 +56,23 @@ export function Navbar({ whatsappNumber = '+5491100000000' }: NavbarProps) {
             <WhatsappLogo size={16} weight="bold" />
             <span>WhatsApp</span>
           </a>
+
+          {/* Cart Drawer Trigger */}
+          <button
+            onClick={openDrawer}
+            className="relative inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-mono uppercase tracking-wider border border-zinc-300 dark:border-zinc-700 hover:border-black dark:hover:border-white text-black dark:text-white transition-colors cursor-pointer"
+            title="Ver carrito de compras"
+            aria-label={`Ver carrito de compras, ${totalItems} items`}
+          >
+            <ShoppingBag size={16} weight="bold" />
+            <span className="hidden sm:inline">Carrito</span>
+            {totalItems > 0 && (
+              <span className="inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 text-[10px] font-mono font-bold bg-black text-white dark:bg-white dark:text-black">
+                {totalItems}
+              </span>
+            )}
+          </button>
+
 
           {/* Clerk Auth Integration */}
           <div className="flex items-center pl-2 border-l border-zinc-200 dark:border-zinc-800">

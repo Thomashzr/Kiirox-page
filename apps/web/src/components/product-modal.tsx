@@ -1,8 +1,9 @@
 'use client';
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Product } from '../types';
-import { X, WhatsappLogo, CheckCircle, WarningCircle } from '@phosphor-icons/react';
+import { useCart } from '../context/cart-context';
+import { X, WhatsappLogo, CheckCircle, WarningCircle, Plus, Minus, ShoppingBag } from '@phosphor-icons/react';
 
 interface ProductModalProps {
   product: Product | null;
@@ -15,6 +16,13 @@ export function ProductModal({
   onClose,
   whatsappNumber = '+5491100000000',
 }: ProductModalProps) {
+  const { addItem, items } = useCart();
+  const [quantity, setQuantity] = useState(1);
+
+  useEffect(() => {
+    setQuantity(1);
+  }, [product]);
+
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') onClose();
@@ -28,6 +36,7 @@ export function ProductModal({
       window.removeEventListener('keydown', handleKeyDown);
     };
   }, [product, onClose]);
+
 
   if (!product) return null;
 
@@ -134,17 +143,77 @@ export function ProductModal({
             </div>
 
             {/* Actions */}
-            <div className="pt-4 border-t border-zinc-200 dark:border-zinc-800">
-              <a
-                href={`https://wa.me/${whatsappNumber.replace(/[^0-9]/g, '')}?text=${whatsappMessage}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="w-full inline-flex items-center justify-center gap-2 px-6 py-3.5 bg-black dark:bg-white text-white dark:text-black text-xs font-mono font-bold tracking-wider uppercase hover:bg-zinc-800 dark:hover:bg-zinc-200 transition-colors"
-              >
-                <WhatsappLogo size={18} weight="bold" />
-                <span>Pedir o Consultar vía WhatsApp</span>
-              </a>
+            <div className="pt-4 border-t border-zinc-200 dark:border-zinc-800 flex flex-col gap-3">
+              {isAvailable ? (
+                <>
+                  {/* Quantity selector and Add to Cart row */}
+                  <div className="flex items-center gap-3">
+                    <div className="inline-flex items-center border border-zinc-300 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-900">
+                      <button
+                        onClick={() => setQuantity((q) => Math.max(1, q - 1))}
+                        disabled={quantity <= 1}
+                        className="p-2 text-zinc-600 dark:text-zinc-400 hover:text-black dark:hover:text-white disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                        aria-label="Disminuir cantidad"
+                      >
+                        <Minus size={14} weight="bold" />
+                      </button>
+                      <span className="w-10 text-center text-xs font-mono font-bold">
+                        {quantity}
+                      </span>
+                      <button
+                        onClick={() => setQuantity((q) => Math.min(product.stock, q + 1))}
+                        disabled={quantity >= product.stock}
+                        className="p-2 text-zinc-600 dark:text-zinc-400 hover:text-black dark:hover:text-white disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                        aria-label="Aumentar cantidad"
+                      >
+                        <Plus size={14} weight="bold" />
+                      </button>
+                    </div>
+
+                    <button
+                      onClick={() => {
+                        addItem(product, quantity);
+                        onClose();
+                      }}
+                      className="flex-1 inline-flex items-center justify-center gap-2 px-6 py-3 bg-black dark:bg-white text-white dark:text-black text-xs font-mono font-bold tracking-wider uppercase hover:bg-zinc-800 dark:hover:bg-zinc-200 transition-colors shadow-md"
+                    >
+                      <ShoppingBag size={16} weight="bold" />
+                      <span>Agregar al carrito</span>
+                    </button>
+                  </div>
+
+                  {/* Secondary WhatsApp consultation button */}
+                  <a
+                    href={`https://wa.me/${whatsappNumber.replace(/[^0-9]/g, '')}?text=${whatsappMessage}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 border border-zinc-300 dark:border-zinc-700 hover:border-black dark:hover:border-white text-zinc-700 dark:text-zinc-300 hover:text-black dark:hover:text-white text-xs font-mono tracking-wider uppercase transition-colors"
+                  >
+                    <WhatsappLogo size={16} weight="bold" />
+                    <span>Consultar directo por WhatsApp</span>
+                  </a>
+                </>
+              ) : (
+                <div className="flex flex-col gap-2">
+                  <button
+                    disabled
+                    className="w-full py-3 bg-zinc-100 dark:bg-zinc-900 text-zinc-400 dark:text-zinc-600 text-xs font-mono uppercase tracking-wider cursor-not-allowed border border-zinc-200 dark:border-zinc-800"
+                  >
+                    Sin stock disponible
+                  </button>
+                  <a
+                    href={`https://wa.me/${whatsappNumber.replace(/[^0-9]/g, '')}?text=${whatsappMessage}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 border border-zinc-300 dark:border-zinc-700 hover:border-black dark:hover:border-white text-xs font-mono tracking-wider uppercase transition-colors"
+                  >
+                    <WhatsappLogo size={16} weight="bold" />
+                    <span>Consultar reposición vía WhatsApp</span>
+                  </a>
+                </div>
+              )}
             </div>
+
           </div>
         </div>
       </div>
