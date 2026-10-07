@@ -1,0 +1,16 @@
+{
+  "name": "kiirox-monorepo",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "migrate": "node infra/migrate.mjs",
+    "web:dev": "npm --prefix apps/web run dev",
+    "web:build": "npm --prefix apps/web run build",
+    "api:test": "cd apps/api && gleam test"
+  },
+  "dependencies": {
+    "@neon/config": "^1.8.4",
+    "@neon/env": "^1.5.1",
+    "@neondatabase/serverless": "^1.2.0"
+  }
+}
