@@ -8,7 +8,6 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const rootDir = path.resolve(__dirname, '..');
 
-// Load environment variables if not present
 let databaseUrl = process.env.DATABASE_URL || process.env.DATABASE_URL_UNPOOLED;
 
 if (!databaseUrl) {
@@ -28,6 +27,67 @@ if (!databaseUrl) {
 }
 
 const sql = neon(databaseUrl);
+
+function splitSqlStatements(sqlText) {
+  const statements = [];
+  let current = '';
+  let inString = false;
+  let inLineComment = false;
+  let inBlockComment = false;
+
+  for (let i = 0; i < sqlText.length; i++) {
+    const ch = sqlText[i];
+    const next = sqlText[i + 1];
+
+    if (inLineComment) {
+      if (ch === '\n') inLineComment = false;
+      current += ch;
+    } else if (inBlockComment) {
+      if (ch === '*' && next === '/') {
+        inBlockComment = false;
+        current += '*/';
+        i++;
+      } else {
+        current += ch;
+      }
+    } else if (inString) {
+      if (ch === "'" && next === "'") {
+        current += "''";
+        i++;
+      } else if (ch === "'") {
+        inString = false;
+        current += ch;
+      } else {
+        current += ch;
+      }
+    } else {
+      if (ch === '-' && next === '-') {
+        inLineComment = true;
+        current += '--';
+        i++;
+      } else if (ch === '/' && next === '*') {
+        inBlockComment = true;
+        current += '/*';
+        i++;
+      } else if (ch === ';') {
+        const trimmed = current.trim();
+        if (trimmed.length > 0) {
+          statements.push(trimmed);
+        }
+        current = '';
+      } else {
+        current += ch;
+      }
+    }
+  }
+
+  const trimmed = current.trim();
+  if (trimmed.length > 0) {
+    statements.push(trimmed);
+  }
+
+  return statements;
+}
 
 async function runMigrations() {
   console.log('=== KIIROX Neon Migration Runner ===');
@@ -67,10 +127,11 @@ async function runMigrations() {
     console.log(`  > Applying ${file}...`);
     const filePath = path.join(migrationsDir, file);
     const content = fs.readFileSync(filePath, 'utf-8');
+    const statements = splitSqlStatements(content);
 
-    // Execute migration SQL using raw execution
-    // Neon HTTP query endpoint accepts raw strings via sql.query
-    await sql.query(content);
+    for (const statement of statements) {
+      await sql.query(statement);
+    }
 
     // Record in schema_migrations
     await sql`
