@@ -5,6 +5,7 @@ import domain/admin.{
 
 import domain/catalog.{type CatalogRepository, type StoreConfig, StoreConfig}
 import domain/category.{Category}
+import domain/inventory.{InventoryMovement}
 import domain/product.{Product, ProductImage, Published}
 import gleam/erlang/process
 import gleam/int
@@ -317,6 +318,46 @@ fn make_fallback_admin_repo() -> AdminRepository {
     },
     delete_product_image: fn(_, _) { Ok(Nil) },
     set_primary_image: fn(_, _) { Ok(Nil) },
+    record_stock_movement: fn(input) {
+      let mov =
+        InventoryMovement(
+          id: "mov-fallback-1",
+          product_id: input.product_id,
+          delta: input.delta,
+          movement_type: input.movement_type,
+          reason: input.reason,
+          reference_type: None,
+          reference_id: None,
+          admin_user_id: input.admin_user_id,
+          created_at: "2026-10-07T00:00:00Z",
+        )
+      let prod =
+        Product(
+          id: input.product_id,
+          sku: "FALLBACK-SKU",
+          name: "Fallback Product",
+          slug: "fallback-product",
+          brand: None,
+          short_description: None,
+          description: None,
+          price: 1000.0,
+          currency: "ARS",
+          stock: 50 + input.delta,
+          low_stock_threshold: 5,
+          status: Published,
+          is_featured: False,
+          is_new: False,
+          sort_order: 1,
+          category_id: "c1",
+          images: [],
+          created_at: "2026-10-07T00:00:00Z",
+          updated_at: "2026-10-07T00:00:00Z",
+        )
+      Ok(#(prod, mov))
+    },
+    list_inventory_movements: fn(_) {
+      Ok(catalog.Paginated(data: [], pagination: catalog.Pagination(1, 24, 0)))
+    },
   )
 }
 

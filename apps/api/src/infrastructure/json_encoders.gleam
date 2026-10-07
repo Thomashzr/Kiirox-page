@@ -4,9 +4,11 @@ import domain/catalog.{
   DatabaseError, InvalidFilter, ProductNotFound,
 }
 import domain/category.{type Category}
+import domain/inventory.{type InventoryMovement, movement_type_to_string}
 import domain/product.{type Product, type ProductImage, status_to_string}
 import gleam/json.{type Json}
 import gleam/option.{type Option, None, Some}
+
 
 pub fn admin_user_to_json(admin: AdminUser) -> Json {
   json.object([
@@ -110,6 +112,36 @@ pub fn catalog_error_to_json(err: CatalogError) -> Json {
         #("code", json.string(code)),
         #("message", json.string(message)),
         #("details", json.object([])),
+      ]),
+    ),
+  ])
+}
+
+pub fn inventory_movement_to_json(mov: InventoryMovement) -> Json {
+  json.object([
+    #("id", json.string(mov.id)),
+    #("product_id", json.string(mov.product_id)),
+    #("delta", json.int(mov.delta)),
+    #("movement_type", json.string(movement_type_to_string(mov.movement_type))),
+    #("reason", option_to_json(mov.reason, json.string)),
+    #("reference_type", option_to_json(mov.reference_type, json.string)),
+    #("reference_id", option_to_json(mov.reference_id, json.string)),
+    #("admin_user_id", option_to_json(mov.admin_user_id, json.string)),
+    #("created_at", json.string(mov.created_at)),
+  ])
+}
+
+pub fn paginated_inventory_movements_to_json(
+  paginated: Paginated(InventoryMovement),
+) -> Json {
+  json.object([
+    #("data", json.array(paginated.data, inventory_movement_to_json)),
+    #(
+      "pagination",
+      json.object([
+        #("page", json.int(paginated.pagination.page)),
+        #("page_size", json.int(paginated.pagination.page_size)),
+        #("total", json.int(paginated.pagination.total)),
       ]),
     ),
   ])

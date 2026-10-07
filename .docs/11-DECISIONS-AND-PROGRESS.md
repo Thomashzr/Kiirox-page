@@ -127,6 +127,46 @@
   - `apps/web/src/components/admin/product-form.tsx`: Formulario unificado para creación y edición con validación de SKU/Slug único, badges de destacado/nuevo, control de stock y galería con asignación de imagen principal.
   - Páginas `/admin/products`, `/admin/products/new` y `/admin/products/[id]` operativas y desplegadas en producción en Vercel (`https://kiirox.vercel.app`).
 
+### ✅ Fase 7 — Administración de Stock e Inventario & Auditoría Kardex
+- **Alineación Interactiva (Grill-Me)**:
+  - *Arquitectura de navegación*: Centro de Inventario dedicado y unificado en `/admin/inventory` estructurado en dos pestañas: **Control de Stock y Alertas** (visión operativa en tiempo real con umbrales) y **Historial de Movimientos / Kardex** (trazabilidad y auditoría completa de movimientos).
+  - *Modal de Ajuste con Triple Selector*:
+    - **Entrada (+)**: Recepción de mercadería o lote nuevo con cantidad y motivo sugerido.
+    - **Salida (-)**: Merma, daño, vencimiento o venta manual, validando en tiempo real que no supere el stock disponible.
+    - **Conteo Físico**: El operador ingresa el stock real contado en estantería; el sistema calcula automáticamente la variación resultante `delta = stock_real - stock_actual` y genera un movimiento de corrección/balance.
+  - *Regla Estricta de No Negatividad*: Bloqueo atómico tanto en cliente como en servidor (`stock + delta >= 0`). Si el stock resultante fuera negativo, la operación se rechaza inmediatamente con `ValidationError` y no se registra ningún movimiento.
+- **Backend API en Gleam (`apps/api`)**:
+  - Modelos de dominio en `domain/inventory.gleam` (`InventoryMovement`, `InventoryMovementInput`, `InventoryFilters`).
+  - Extensión de `domain/admin.gleam` (`record_stock_movement`, `list_inventory_movements`).
+  - Encoders JSON en `infrastructure/json_encoders.gleam` (`inventory_movement_to_json`, `paginated_inventory_movements_to_json`).
+  - Implementación atómica con `pog` en `infrastructure/admin_postgres.gleam`: valida stock previo, inserta en `inventory_movements` y actualiza `products.stock` y `updated_at`.
+  - Rutas y handlers en `web/router.gleam` y `web/admin_handlers.gleam`:
+    - `POST /api/v1/admin/inventory/adjust`: Registra ajuste y actualiza saldo.
+    - `GET /api/v1/admin/inventory/movements`: Bitácora histórica con filtros por producto, tipo de movimiento y paginación.
+    - `GET /api/v1/admin/products/:id/movements`: Movimientos específicos de un producto.
+  - Suite de 34 pruebas de integración y dominio pasando al 100% en verde con `gleeunit`.
+  - Desplegado y verificado en producción en Fly.io (`https://kiirox-api.fly.dev`).
+- **Frontend Admin en Next.js 16 (`apps/web`)**:
+  - Tipos `MovementType`, `InventoryMovement`, `InventoryMovementWithProduct`, `PaginatedMovements` en `src/types/index.ts`.
+  - Server Actions en `src/app/admin/inventory/actions.ts`:
+    - `getInventoryOverview`: Cálculo de productos y métricas agregadas (Total SKUs, Unidades Totales, Bajo Stock, Sin Stock).
+    - `getInventoryMovements`: Consulta paginada con joins a `products` y `admin_users` para email de operador.
+    - `recordStockAdjustmentAction`: Mutación segura con verificación de permisos, validación de no negatividad y revalidación de caché en Next.js (`/admin/inventory`, `/admin/products`, `/admin`, `/productos`).
+    - `getProductMovementHistory`: Consulta de historial específico para un producto.
+  - Componente modal `StockAdjustModal` (`src/components/admin/stock-adjust-modal.tsx`):
+    - Pestañas Entrada (+), Salida (-), Conteo Físico.
+    - Caja de previsualización en vivo (Stock Actual, Variación `delta`, Stock Final Resultante).
+    - Chips de motivos frecuentes y justificación obligatoria.
+    - Bloqueo visual e interactivo si el saldo resulta negativo.
+  - Componente unificado `InventoryManager` (`src/components/admin/inventory-manager.tsx`):
+    - Tarjetas KPI superiores interactivas con filtrado automático al hacer clic.
+    - Pestaña de Control de Stock: tabla de alta densidad con badges `[Óptimo]`, `[Bajo Stock]`, `[Sin Stock]`, umbral mínimo, botones para abrir modal de ajuste y acceso directo al Kardex de ese producto.
+    - Pestaña Kardex: tabla de auditoría con fecha/hora local, SKU y nombre del producto, badge por tipo de movimiento, variación en color semántico (`+X` verde / `-Y` ámbar/rojo), motivo y operador responsable.
+  - Página `/admin/inventory` operativa.
+  - Actualización del layout (`/admin/layout.tsx`) con enlace directo a "Inventario".
+  - Enlaces directos desde las tarjetas de métricas del Dashboard `/admin` hacia el Centro de Inventario.
+  - Compilación verificada sin errores y desplegada en producción en Vercel (`https://kiirox.vercel.app`).
+
 ---
 
 ## 🏛️ 3. Registro de Decisiones de Arquitectura (ADRs)
@@ -167,6 +207,10 @@
 - **Decisión:** La acción de eliminación por defecto realiza un borrado lógico marcando el producto como `archived` (ocultándolo de la tienda pública pero preservando su historial de ventas e inventario). Se ofrece una acción explícita de "Eliminación Permanente" con confirmación de advertencia que borra la fila en SQL (en cascada con sus fotos) y remueve el asset de Cloudinary.
 - **Justificación:** Salvaguarda la integridad referencial y las métricas comerciales de pedidos previos, a la vez que permite purgar pruebas o productos creados por error.
 
+### ADR-10: Auditoría Kardex Obligatoria y Restricción Atómica de Stock No Negativo
+- **Decisión:** Toda alteración en la disponibilidad física de inventario debe estar respaldada obligatoriamente por un registro inmutable en `inventory_movements` con motivo y operador, prohibiendo terminantemente los saldos negativos (`stock + delta >= 0`) a nivel de verificación previa en código y a nivel de restricción SQL (`CHECK (stock >= 0)`).
+- **Justificación:** En una tienda de nutrición y suplementación deportiva, el quiebre de stock no admitido o valores negativos desvirtúan el catálogo público y el cálculo de reposición. El historial de movimientos tipo Kardex garantiza que ante cualquier discrepancia entre el inventario físico y el sistema, exista una justificación clara registrada por el operador.
+
 ---
 
 ## 🗺️ 4. Estado Actual del Roadmap
@@ -179,8 +223,9 @@
 | **Fase 3** | Frontend público moderno en Next.js 16 | 🟢 Completada |
 | **Fase 4** | Carrito de compras, WhatsApp, copiar y descargar `.txt` | 🟢 Completada |
 | **Fase 5** | Autenticación Admin (Clerk), roles y `/admin/me` | 🟢 Completada |
-| **Fase 6** | Administración de Productos (CRUD y Cloudinary) | 🟢 **Completada** |
-| **Fase 7** | Administración de Stock e Inventario (movimientos) | 🟡 **Próxima a iniciar** |
-| **Fase 8** | Hardening y revisión final de producción | ⚪ Pendiente |
+| **Fase 6** | Administración de Productos (CRUD y Cloudinary) | 🟢 Completada |
+| **Fase 7** | Administración de Stock e Inventario (Kardex audit trail) | 🟢 **Completada** |
+| **Fase 8** | Hardening y revisión final de producción | 🟡 **Próxima a iniciar** |
 | **Fase 9** | Optimizaciones y auditoría | ⚪ Pendiente |
+
 

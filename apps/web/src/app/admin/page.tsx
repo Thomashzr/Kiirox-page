@@ -79,32 +79,42 @@ export default async function AdminDashboardPage() {
         </div>
 
         {/* Low Stock Warning */}
-        <div className="border border-zinc-800 bg-zinc-950 p-5">
+        <a
+          href="/admin/inventory"
+          className="border border-zinc-800 bg-zinc-950 p-5 hover:border-amber-600/70 transition-colors block group"
+        >
           <div className="flex items-center justify-between text-amber-500 mb-3">
-            <span className="text-xs font-mono uppercase tracking-wider">Bajo Stock</span>
+            <span className="text-xs font-mono uppercase tracking-wider group-hover:text-amber-400">
+              Bajo Stock
+            </span>
             <WarningCircle size={20} weight="bold" />
           </div>
           <div className="text-3xl font-mono font-bold text-amber-400 mb-1">
             {lowStockCount}
           </div>
-          <div className="text-[11px] font-mono text-zinc-500">
-            Requieren reposición próxima
+          <div className="text-[11px] font-mono text-zinc-500 group-hover:text-zinc-400">
+            Requieren reposición &rarr;
           </div>
-        </div>
+        </a>
 
         {/* Out of Stock */}
-        <div className="border border-zinc-800 bg-zinc-950 p-5">
+        <a
+          href="/admin/inventory"
+          className="border border-zinc-800 bg-zinc-950 p-5 hover:border-red-600/70 transition-colors block group"
+        >
           <div className="flex items-center justify-between text-red-500 mb-3">
-            <span className="text-xs font-mono uppercase tracking-wider">Agotados</span>
+            <span className="text-xs font-mono uppercase tracking-wider group-hover:text-red-400">
+              Agotados
+            </span>
             <Stack size={20} weight="bold" />
           </div>
           <div className="text-3xl font-mono font-bold text-red-400 mb-1">
             {outOfStockCount}
           </div>
-          <div className="text-[11px] font-mono text-zinc-500">
-            Sin stock disponible para venta
+          <div className="text-[11px] font-mono text-zinc-500 group-hover:text-zinc-400">
+            Ajustar en inventario &rarr;
           </div>
-        </div>
+        </a>
 
         {/* Categories */}
         <div className="border border-zinc-800 bg-zinc-950 p-5">
@@ -176,6 +186,12 @@ export default async function AdminDashboardPage() {
               className="px-3 py-1.5 bg-white text-black text-xs font-mono uppercase font-bold tracking-wider hover:bg-zinc-200 transition-colors"
             >
               + Nuevo Producto
+            </a>
+            <a
+              href="/admin/inventory"
+              className="px-3 py-1.5 border border-zinc-700 text-zinc-300 hover:text-white text-xs font-mono uppercase tracking-wider hover:border-zinc-500 transition-colors"
+            >
+              Kardex & Stock &rarr;
             </a>
             <a
               href="/admin/products"

@@ -451,6 +451,14 @@ export function ProductForm({ mode, categories, initialData }: ProductFormProps)
                 className="w-full bg-black border border-zinc-800 px-3 py-2 text-xs font-mono text-white focus:outline-none focus:border-white"
                 required
               />
+              {mode === 'edit' && initialData?.id && (
+                <p className="text-[10px] font-mono text-zinc-500 mt-1">
+                  💡 Para trazabilidad con auditoría y Kardex, ajusta las unidades en el{' '}
+                  <a href="/admin/inventory" className="text-zinc-300 underline hover:text-white">
+                    Centro de Inventario
+                  </a>.
+                </p>
+              )}
             </div>
 
             {/* Low stock threshold */}

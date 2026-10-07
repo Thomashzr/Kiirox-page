@@ -57,3 +57,41 @@ export interface CartItem {
   slug: string;
 }
 
+export type MovementType =
+  | 'initial_stock'
+  | 'purchase'
+  | 'manual_adjustment'
+  | 'correction'
+  | 'shrinkage'
+  | 'return'
+  | 'sale'
+  | 'reservation'
+  | 'release';
+
+export interface InventoryMovement {
+  id: string;
+  product_id: string;
+  delta: number;
+  movement_type: MovementType;
+  reason: string | null;
+  reference_type: string | null;
+  reference_id: string | null;
+  admin_user_id: string | null;
+  created_at: string;
+}
+
+export interface InventoryMovementWithProduct extends InventoryMovement {
+  product_name: string;
+  product_sku: string;
+  admin_email?: string | null;
+}
+
+export interface PaginatedMovements {
+  data: InventoryMovementWithProduct[];
+  pagination: {
+    page: number;
+    page_size: number;
+    total: number;
+  };
+}
+

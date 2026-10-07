@@ -135,6 +135,22 @@ fn route(
       admin_handlers.handle_admin_set_primary_image(req, id, image_id, admin_repo)
     }
 
+    ["api", "v1", "admin", "inventory", "adjust"] -> {
+      use <- wisp.require_method(req, http.Post)
+      admin_handlers.handle_admin_record_movement(req, admin_repo)
+    }
+
+    ["api", "v1", "admin", "inventory", "movements"] -> {
+      use <- wisp.require_method(req, http.Get)
+      admin_handlers.handle_admin_list_movements(req, admin_repo)
+    }
+
+    ["api", "v1", "admin", "products", id, "movements"] -> {
+      use <- wisp.require_method(req, http.Get)
+      admin_handlers.handle_admin_product_movements(req, id, admin_repo)
+    }
+
+
 
     _ ->
       json.object([

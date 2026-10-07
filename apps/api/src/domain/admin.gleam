@@ -1,4 +1,7 @@
 import domain/catalog.{type Paginated}
+import domain/inventory.{
+  type InventoryFilters, type InventoryMovement, type InventoryMovementInput,
+}
 import domain/product.{
   type Product, type ProductImage, type ProductImageInput, type ProductInput,
   type ProductStatus,
@@ -71,7 +74,12 @@ pub type AdminRepository {
       Result(ProductImage, AdminError),
     delete_product_image: fn(String, String) -> Result(Nil, AdminError),
     set_primary_image: fn(String, String) -> Result(Nil, AdminError),
+    record_stock_movement: fn(InventoryMovementInput) ->
+      Result(#(Product, InventoryMovement), AdminError),
+    list_inventory_movements: fn(InventoryFilters) ->
+      Result(Paginated(InventoryMovement), AdminError),
   )
 }
+
 
 

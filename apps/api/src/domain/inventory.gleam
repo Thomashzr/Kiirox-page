@@ -53,3 +53,23 @@ pub fn calculate_new_stock(current_stock: Int, delta: Int) -> Result(Int, Nil) {
     False -> Error(Nil)
   }
 }
+
+pub type InventoryMovementInput {
+  InventoryMovementInput(
+    product_id: String,
+    delta: Int,
+    movement_type: MovementType,
+    reason: Option(String),
+    admin_user_id: Option(String),
+  )
+}
+
+pub type InventoryFilters {
+  InventoryFilters(
+    product_id: Option(String),
+    movement_type: Option(MovementType),
+    page: Int,
+    page_size: Int,
+  )
+}
+

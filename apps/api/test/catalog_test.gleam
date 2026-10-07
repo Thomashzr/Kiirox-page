@@ -6,6 +6,7 @@ import domain/catalog.{
   StoreConfig, default_filters,
 }
 import domain/category.{type Category, Category}
+import domain/inventory.{InventoryMovement, Purchase}
 import domain/product.{
   type Product, Draft, Product, ProductImage, Published,
 }
@@ -111,6 +112,64 @@ fn dummy_admin_repo() -> AdminRepository {
     },
     delete_product_image: fn(_, _) { Ok(Nil) },
     set_primary_image: fn(_, _) { Ok(Nil) },
+    record_stock_movement: fn(input) {
+      case input.delta < -100 {
+        True ->
+          Error(admin.ValidationError("Stock insuficiente: resultado negativo"))
+        False -> {
+          let mov =
+            InventoryMovement(
+              id: "mov-test-1",
+              product_id: input.product_id,
+              delta: input.delta,
+              movement_type: input.movement_type,
+              reason: input.reason,
+              reference_type: None,
+              reference_id: None,
+              admin_user_id: input.admin_user_id,
+              created_at: "2026-10-07T00:00:00Z",
+            )
+          let prod =
+            Product(
+              id: input.product_id,
+              sku: "GEL-001",
+              name: "Gel Maurten 100",
+              slug: "gel-maurten-100",
+              brand: Some("Maurten"),
+              short_description: None,
+              description: None,
+              price: 4800.0,
+              currency: "ARS",
+              stock: 50 + input.delta,
+              low_stock_threshold: 5,
+              status: Published,
+              is_featured: True,
+              is_new: True,
+              sort_order: 1,
+              category_id: "c1",
+              images: [],
+              created_at: "2026-10-07T00:00:00Z",
+              updated_at: "2026-10-07T00:00:00Z",
+            )
+          Ok(#(prod, mov))
+        }
+      }
+    },
+    list_inventory_movements: fn(_) {
+      let mov =
+        InventoryMovement(
+          id: "mov-test-1",
+          product_id: "p1",
+          delta: 10,
+          movement_type: Purchase,
+          reason: Some("Compra inicial"),
+          reference_type: None,
+          reference_id: None,
+          admin_user_id: None,
+          created_at: "2026-10-07T00:00:00Z",
+        )
+      Ok(catalog.Paginated(data: [mov], pagination: catalog.Pagination(page: 1, page_size: 24, total: 1)))
+    },
   )
 }
 
@@ -537,4 +596,66 @@ pub fn http_admin_product_image_create_test() {
   let body = simulate.read_body(res)
   assert string.contains(body, "kiirox/test")
 }
+
+pub fn http_admin_inventory_adjust_test() {
+  let #(repo, _, _) = setup_test_catalog()
+  let admin_repo = dummy_admin_repo()
+  let payload = "{\"product_id\":\"p1\",\"delta\":10,\"movement_type\":\"purchase\",\"reason\":\"Compra de lote nuevo\"}"
+  let req =
+    simulate.request(http.Post, "/api/v1/admin/inventory/adjust")
+    |> simulate.header("authorization", valid_mock_token)
+    |> simulate.header("content-type", "application/json")
+    |> simulate.string_body(payload)
+  let res = router.handle_request(req, repo, admin_repo)
+
+  assert res.status == 201
+  let body = simulate.read_body(res)
+  assert string.contains(body, "\"success\":true")
+  assert string.contains(body, "\"delta\":10")
+}
+
+pub fn http_admin_inventory_adjust_insufficient_stock_test() {
+  let #(repo, _, _) = setup_test_catalog()
+  let admin_repo = dummy_admin_repo()
+  let payload = "{\"product_id\":\"p1\",\"delta\":-500,\"movement_type\":\"sale\",\"reason\":\"Salida excesiva\"}"
+  let req =
+    simulate.request(http.Post, "/api/v1/admin/inventory/adjust")
+    |> simulate.header("authorization", valid_mock_token)
+    |> simulate.header("content-type", "application/json")
+    |> simulate.string_body(payload)
+  let res = router.handle_request(req, repo, admin_repo)
+
+  assert res.status == 400
+  let body = simulate.read_body(res)
+  assert string.contains(body, "VALIDATION_ERROR")
+}
+
+pub fn http_admin_inventory_movements_list_test() {
+  let #(repo, _, _) = setup_test_catalog()
+  let admin_repo = dummy_admin_repo()
+  let req =
+    simulate.request(http.Get, "/api/v1/admin/inventory/movements")
+    |> simulate.header("authorization", valid_mock_token)
+  let res = router.handle_request(req, repo, admin_repo)
+
+  assert res.status == 200
+  let body = simulate.read_body(res)
+  assert string.contains(body, "\"data\":")
+  assert string.contains(body, "mov-test-1")
+}
+
+pub fn http_admin_product_movements_test() {
+  let #(repo, _, _) = setup_test_catalog()
+  let admin_repo = dummy_admin_repo()
+  let req =
+    simulate.request(http.Get, "/api/v1/admin/products/p1/movements")
+    |> simulate.header("authorization", valid_mock_token)
+  let res = router.handle_request(req, repo, admin_repo)
+
+  assert res.status == 200
+  let body = simulate.read_body(res)
+  assert string.contains(body, "\"data\":")
+  assert string.contains(body, "mov-test-1")
+}
+
 

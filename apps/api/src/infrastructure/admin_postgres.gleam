@@ -1,9 +1,14 @@
 import domain/admin.{
   type AdminError, type AdminProductFilters, type AdminRepository,
   type AdminUser, Admin, AdminRepository, AdminUser, DatabaseError, NotFound,
-  Unauthorized, string_to_role,
+  Unauthorized, ValidationError, string_to_role,
 }
 import domain/catalog.{type Paginated, Paginated, Pagination}
+import domain/inventory.{
+  type InventoryFilters, type InventoryMovement, type InventoryMovementInput,
+  InventoryMovement, ManualAdjustment, movement_type_to_string,
+  string_to_movement_type,
+}
 import domain/product.{
   type Product, type ProductImage, type ProductImageInput, type ProductInput,
   Product, status_to_string,
@@ -53,6 +58,12 @@ pub fn new(conn: pog.Connection) -> AdminRepository {
     },
     set_primary_image: fn(product_id, image_id) {
       set_primary_image_in_db(conn, product_id, image_id)
+    },
+    record_stock_movement: fn(input) {
+      record_stock_movement_in_db(conn, input)
+    },
+    list_inventory_movements: fn(filters) {
+      list_inventory_movements_from_db(conn, filters)
     },
   )
 }
@@ -521,6 +532,211 @@ fn build_admin_query_params(
         )
       }
     }
+    None -> #(clauses, params)
+  }
+
+  let joined_clauses = string.join(list.reverse(clauses), "")
+  #(joined_clauses, list.reverse(params))
+}
+
+fn inventory_movement_decoder() -> decode.Decoder(InventoryMovement) {
+  use id <- decode.field(0, decode.string)
+  use product_id <- decode.field(1, decode.string)
+  use delta <- decode.field(2, decode.int)
+  use m_type_str <- decode.field(3, decode.string)
+  use reason <- decode.field(4, decode.optional(decode.string))
+  use reference_type <- decode.field(5, decode.optional(decode.string))
+  use reference_id <- decode.field(6, decode.optional(decode.string))
+  use admin_user_id <- decode.field(7, decode.optional(decode.string))
+  use created_at <- decode.field(8, decode.string)
+
+  let movement_type = case string_to_movement_type(m_type_str) {
+    Ok(t) -> t
+    Error(Nil) -> ManualAdjustment
+  }
+
+  decode.success(InventoryMovement(
+    id:,
+    product_id:,
+    delta:,
+    movement_type:,
+    reason:,
+    reference_type:,
+    reference_id:,
+    admin_user_id:,
+    created_at:,
+  ))
+}
+
+fn record_stock_movement_in_db(
+  conn: pog.Connection,
+  input: InventoryMovementInput,
+) -> Result(#(Product, InventoryMovement), AdminError) {
+  // 1. Fetch current stock
+  let check_sql = "SELECT stock FROM products WHERE id = $1::uuid LIMIT 1;"
+  use stock_res <- result.try(
+    pog.query(check_sql)
+    |> pog.parameter(pog.text(input.product_id))
+    |> pog.returning(decode.at([0], decode.int))
+    |> pog.execute(conn)
+    |> result.map_error(fn(err) {
+      DatabaseError("Error al consultar stock: " <> pog_error_to_string(err))
+    }),
+  )
+
+  use current_stock <- result.try(case stock_res.rows {
+    [s, ..] -> Ok(s)
+    [] -> Error(NotFound("Producto no encontrado"))
+  })
+
+  // 2. Strict non-negative check
+  let new_stock = current_stock + input.delta
+  case new_stock < 0 {
+    True ->
+      Error(ValidationError(
+        "Stock insuficiente: la variación ("
+        <> int.to_string(input.delta)
+        <> ") dejaría el stock en negativo ("
+        <> int.to_string(new_stock)
+        <> ")",
+      ))
+    False -> {
+      // 3. Update product stock
+      let update_sql = "
+        UPDATE products SET
+          stock = stock + $1,
+          updated_at = NOW()
+        WHERE id = $2::uuid
+        RETURNING id::text, sku, name, slug, brand, short_description, description, price::float8, currency, stock, low_stock_threshold, status, is_featured, is_new, sort_order, category_id::text, created_at::text, updated_at::text;
+      "
+
+      use update_res <- result.try(
+        pog.query(update_sql)
+        |> pog.parameter(pog.int(input.delta))
+        |> pog.parameter(pog.text(input.product_id))
+        |> pog.returning(product_row_decoder())
+        |> pog.execute(conn)
+        |> result.map_error(fn(err) {
+          DatabaseError("Error al actualizar stock: " <> pog_error_to_string(err))
+        }),
+      )
+
+      use prod <- result.try(case update_res.rows {
+        [p, ..] -> Ok(p)
+        [] -> Error(NotFound("Producto no encontrado al actualizar stock"))
+      })
+
+      // 4. Insert inventory movement record
+      let insert_sql = "
+        INSERT INTO inventory_movements (
+          product_id, delta, movement_type, reason, admin_user_id
+        ) VALUES (
+          $1::uuid, $2, $3, $4, $5
+        )
+        RETURNING id::text, product_id::text, delta, movement_type, reason, reference_type, reference_id::text, admin_user_id::text, created_at::text;
+      "
+
+      use mov_res <- result.try(
+        pog.query(insert_sql)
+        |> pog.parameter(pog.text(input.product_id))
+        |> pog.parameter(pog.int(input.delta))
+        |> pog.parameter(pog.text(movement_type_to_string(input.movement_type)))
+        |> pog.parameter(pog.nullable(pog.text, input.reason))
+        |> pog.parameter(pog.nullable(pog.text, input.admin_user_id))
+        |> pog.returning(inventory_movement_decoder())
+        |> pog.execute(conn)
+        |> result.map_error(fn(err) {
+          DatabaseError("Error al registrar movimiento: " <> pog_error_to_string(err))
+        }),
+      )
+
+      use movement <- result.try(case mov_res.rows {
+        [m, ..] -> Ok(m)
+        [] -> Error(DatabaseError("No se pudo registrar el movimiento"))
+      })
+
+      let images = get_product_images(conn, prod.id)
+      Ok(#(Product(..prod, images: images), movement))
+    }
+  }
+}
+
+fn list_inventory_movements_from_db(
+  conn: pog.Connection,
+  filters: InventoryFilters,
+) -> Result(Paginated(InventoryMovement), AdminError) {
+  let page = int.max(1, filters.page)
+  let page_size = int.clamp(filters.page_size, 1, 100)
+  let offset = { page - 1 } * page_size
+
+  let base_sql = "
+    SELECT id::text, product_id::text, delta, movement_type, reason, reference_type, reference_id::text, admin_user_id::text, created_at::text
+    FROM inventory_movements
+    WHERE 1=1
+  "
+
+  let #(where_clauses, params) = build_inventory_query_params(filters)
+
+  let full_sql =
+    base_sql
+    <> where_clauses
+    <> " ORDER BY created_at DESC LIMIT "
+    <> int.to_string(page_size)
+    <> " OFFSET "
+    <> int.to_string(offset)
+    <> ";"
+
+  let q = pog.query(full_sql) |> pog.returning(inventory_movement_decoder())
+  let q_with_params = list.fold(params, q, fn(query, p) { pog.parameter(query, p) })
+
+  use res <- result.try(
+    pog.execute(q_with_params, conn)
+    |> result.map_error(fn(err) {
+      DatabaseError("Error al listar movimientos de inventario: " <> pog_error_to_string(err))
+    }),
+  )
+
+  let count_sql =
+    "SELECT count(*)::int FROM inventory_movements WHERE 1=1" <> where_clauses <> ";"
+  let count_q =
+    pog.query(count_sql)
+    |> pog.returning(decode.at([0], decode.int))
+  let count_q_with_params =
+    list.fold(params, count_q, fn(query, p) { pog.parameter(query, p) })
+
+  let total = case pog.execute(count_q_with_params, conn) {
+    Ok(c_res) -> case c_res.rows {
+      [t, ..] -> t
+      [] -> 0
+    }
+    Error(_) -> list.length(res.rows)
+  }
+
+  Ok(Paginated(
+    data: res.rows,
+    pagination: Pagination(page:, page_size:, total:),
+  ))
+}
+
+fn build_inventory_query_params(
+  filters: InventoryFilters,
+) -> #(String, List(pog.Value)) {
+  let clauses = []
+  let params = []
+
+  let #(clauses, params) = case filters.product_id {
+    Some(pid) -> #(
+      [" AND product_id = $" <> int.to_string(list.length(params) + 1) <> "::uuid", ..clauses],
+      [pog.text(pid), ..params],
+    )
+    None -> #(clauses, params)
+  }
+
+  let #(clauses, params) = case filters.movement_type {
+    Some(mt) -> #(
+      [" AND movement_type = $" <> int.to_string(list.length(params) + 1), ..clauses],
+      [pog.text(movement_type_to_string(mt)), ..params],
+    )
     None -> #(clauses, params)
   }
 

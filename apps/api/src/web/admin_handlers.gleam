@@ -3,6 +3,10 @@ import domain/admin.{
   type AdminUser, AdminProductFilters, DatabaseError, Forbidden, NotFound,
   Unauthorized, ValidationError,
 }
+import domain/inventory.{
+  type InventoryFilters, type InventoryMovementInput, InventoryFilters,
+  InventoryMovementInput, ManualAdjustment, string_to_movement_type,
+}
 import domain/product.{
   type ProductImageInput, type ProductInput, Draft, ProductImageInput,
   ProductInput, string_to_status,
@@ -11,7 +15,8 @@ import gleam/dynamic/decode
 import gleam/int
 import gleam/json
 import gleam/list
-import gleam/option.{None}
+import gleam/option.{None, Some}
+
 import gleam/result
 import gleam/string
 import infrastructure/json_encoders
@@ -250,6 +255,130 @@ pub fn handle_admin_set_primary_image(
       |> wisp.json_response(200)
     Error(err) -> handle_admin_error(err)
   }
+}
+
+pub fn handle_admin_record_movement(
+  req: Request,
+  admin_repo: AdminRepository,
+) -> Response {
+  use admin_user <- authenticate_admin(req, admin_repo)
+  use body <- wisp.require_bit_array_body(req)
+
+  case json.parse_bits(body, inventory_movement_input_decoder(admin_user.id)) {
+    Error(_) ->
+      error_response(
+        "INVALID_BODY",
+        "Payload JSON inválido para movimiento de stock",
+        400,
+      )
+    Ok(input) -> {
+      case admin_repo.record_stock_movement(input) {
+        Ok(#(product, movement)) ->
+          json.object([
+            #("success", json.bool(True)),
+            #("product", json_encoders.product_to_json(product)),
+            #("movement", json_encoders.inventory_movement_to_json(movement)),
+          ])
+          |> json.to_string
+          |> wisp.json_response(201)
+        Error(err) -> handle_admin_error(err)
+      }
+    }
+  }
+}
+
+pub fn handle_admin_list_movements(
+  req: Request,
+  admin_repo: AdminRepository,
+) -> Response {
+  use _ <- authenticate_admin(req, admin_repo)
+  let filters = parse_inventory_filters(req, None)
+  case admin_repo.list_inventory_movements(filters) {
+    Ok(paginated) ->
+      paginated
+      |> json_encoders.paginated_inventory_movements_to_json
+      |> json.to_string
+      |> wisp.json_response(200)
+    Error(err) -> handle_admin_error(err)
+  }
+}
+
+pub fn handle_admin_product_movements(
+  req: Request,
+  product_id: String,
+  admin_repo: AdminRepository,
+) -> Response {
+  use _ <- authenticate_admin(req, admin_repo)
+  let filters = parse_inventory_filters(req, Some(product_id))
+  case admin_repo.list_inventory_movements(filters) {
+    Ok(paginated) ->
+      paginated
+      |> json_encoders.paginated_inventory_movements_to_json
+      |> json.to_string
+      |> wisp.json_response(200)
+    Error(err) -> handle_admin_error(err)
+  }
+}
+
+fn inventory_movement_input_decoder(
+  admin_id: String,
+) -> decode.Decoder(InventoryMovementInput) {
+  use product_id <- decode.field("product_id", decode.string)
+  use delta <- decode.field("delta", decode.int)
+  use m_type_str <- decode.optional_field(
+    "movement_type",
+    "manual_adjustment",
+    decode.string,
+  )
+  use reason <- decode.optional_field(
+    "reason",
+    None,
+    decode.optional(decode.string),
+  )
+
+  let movement_type = case string_to_movement_type(m_type_str) {
+    Ok(t) -> t
+    Error(Nil) -> ManualAdjustment
+  }
+
+  decode.success(InventoryMovementInput(
+    product_id:,
+    delta:,
+    movement_type:,
+    reason:,
+    admin_user_id: Some(admin_id),
+  ))
+}
+
+fn parse_inventory_filters(
+  req: Request,
+  fixed_product_id: option.Option(String),
+) -> InventoryFilters {
+  let query = wisp.get_query(req)
+
+  let page =
+    list.key_find(query, "page")
+    |> result.try(int.parse)
+    |> result.unwrap(1)
+
+  let page_size =
+    list.key_find(query, "page_size")
+    |> result.try(int.parse)
+    |> result.unwrap(50)
+
+  let product_id = case fixed_product_id {
+    Some(pid) -> Some(pid)
+    None ->
+      list.key_find(query, "product_id")
+      |> option.from_result
+  }
+
+  let movement_type =
+    list.key_find(query, "movement_type")
+    |> result.try(string_to_movement_type)
+    |> option.from_result
+
+  InventoryFilters(product_id:, movement_type:, page:, page_size:)
 }
 
 fn parse_admin_filters(req: Request) -> AdminProductFilters {
