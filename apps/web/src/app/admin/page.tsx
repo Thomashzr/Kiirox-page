@@ -160,7 +160,7 @@ export default async function AdminDashboardPage() {
 
       {/* Products Table Overview */}
       <div className="border border-zinc-800 bg-zinc-950 overflow-hidden">
-        <div className="px-6 py-4 border-b border-zinc-800 flex items-center justify-between">
+        <div className="px-6 py-4 border-b border-zinc-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div>
             <h3 className="text-sm font-mono uppercase tracking-wider font-bold text-white">
               Catálogo de Productos
@@ -168,6 +168,21 @@ export default async function AdminDashboardPage() {
             <p className="text-xs text-zinc-500 font-mono">
               Inventario en tiempo real sincronizado con base de datos
             </p>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <a
+              href="/admin/products/new"
+              className="px-3 py-1.5 bg-white text-black text-xs font-mono uppercase font-bold tracking-wider hover:bg-zinc-200 transition-colors"
+            >
+              + Nuevo Producto
+            </a>
+            <a
+              href="/admin/products"
+              className="px-3 py-1.5 border border-zinc-700 text-zinc-300 hover:text-white text-xs font-mono uppercase tracking-wider hover:border-zinc-500 transition-colors"
+            >
+              Gestionar Catálogo &rarr;
+            </a>
           </div>
         </div>
 

@@ -52,7 +52,7 @@ fn category_decoder() -> decode.Decoder(Category) {
   ))
 }
 
-fn product_image_decoder() -> decode.Decoder(ProductImage) {
+pub fn product_image_decoder() -> decode.Decoder(ProductImage) {
   use id <- decode.field(0, decode.string)
   use product_id <- decode.field(1, decode.string)
   use public_id <- decode.field(2, decode.string)
@@ -73,7 +73,7 @@ fn product_image_decoder() -> decode.Decoder(ProductImage) {
   ))
 }
 
-fn product_row_decoder() -> decode.Decoder(Product) {
+pub fn product_row_decoder() -> decode.Decoder(Product) {
   use id <- decode.field(0, decode.string)
   use sku <- decode.field(1, decode.string)
   use name <- decode.field(2, decode.string)
@@ -190,7 +190,7 @@ fn get_product_by_slug_from_db(
   }
 }
 
-fn get_product_images(
+pub fn get_product_images(
   conn: pog.Connection,
   product_id: String,
 ) -> List(ProductImage) {

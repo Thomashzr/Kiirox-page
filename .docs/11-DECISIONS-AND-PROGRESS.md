@@ -99,6 +99,34 @@
   - Repositorio `AdminRepository` en PostgreSQL (`admin_postgres.gleam`).
   - Endpoint `GET /api/v1/admin/me`: Valida el token `Authorization: Bearer <token_jwt>` contra la tabla `admin_users` y devuelve la identidad y rol del admin (`200 OK`) o `401 Unauthorized` si no es válido.
 
+### ✅ Fase 6 — Administración de Productos & Carga con Cloudinary
+- **Alineación Interactiva (Grill-Me)**:
+  - Arquitectura de imágenes: Carga segura server-side en Next.js con el SDK de Node de Cloudinary (`cloudinary` v2) sin exponer API Secret al cliente, con soporte de drag & drop, validación de tipo/tamaño (10MB) y fallback de URL directa.
+  - UX de administración: Páginas dedicadas completas (`/admin/products` para listado interactivo, `/admin/products/new` para creación y `/admin/products/[id]` para edición detallada y gestión de fotos).
+  - Eliminación: Borrado lógico preferente (`archived`) con opción de borrado permanente (`permanent=true`) que remueve el registro de Neon y elimina el asset en Cloudinary con invalidación de CDN (`invalidate: true`).
+- **Backend API en Gleam (`apps/api`)**:
+  - Nuevos modelos y tipos en `domain/admin.gleam` y `domain/product.gleam` (`ProductInput`, `ProductImageInput`, `AdminProductFilters`).
+  - Implementación completa de métodos en `infrastructure/admin_postgres.gleam` con consultas SQL tipadas en `pog`.
+  - Rutas y handlers en `web/router.gleam` y `web/admin_handlers.gleam`:
+    - `GET /api/v1/admin/products`: Lista todos los productos sin restricción de estado, con soporte de búsqueda por texto, categoría y orden.
+    - `POST /api/v1/admin/products`: Creación de producto con validación de body JSON (`201 Created`).
+    - `GET /api/v1/admin/products/:id`: Detalle completo de producto e imágenes.
+    - `PATCH /api/v1/admin/products/:id`: Actualización de producto (`200 OK`).
+    - `DELETE /api/v1/admin/products/:id`: Archivado lógico por defecto o borrado físico si `?permanent=true`.
+    - `POST /api/v1/admin/products/:id/images`: Asociación de imagen a producto (`201 Created`).
+    - `DELETE /api/v1/admin/products/:id/images/:image_id`: Eliminación de imagen y auto-promoción de la siguiente a principal.
+    - `PATCH /api/v1/admin/products/:id/images/:image_id/primary`: Asignación de imagen principal.
+  - Suite de 30 pruebas unitarias y de integración pasando al 100% en verde con `gleeunit`.
+  - Desplegado y verificado en producción en Fly.io (`https://kiirox-api.fly.dev`).
+- **Frontend Admin en Next.js 16 (`apps/web`)**:
+  - `apps/web/src/app/api/admin/cloudinary/upload/route.ts`: Endpoint de subida de imágenes a Cloudinary mediante streams con verificación de sesión de admin.
+  - `apps/web/src/app/api/admin/cloudinary/delete/route.ts`: Endpoint de eliminación de assets en Cloudinary con verificación de admin.
+  - `apps/web/src/app/admin/products/actions.ts`: Server Actions para consultas y mutaciones directas a Neon DB con `revalidatePath` en `/admin/products` y la tienda pública `/`.
+  - `apps/web/src/components/admin/image-uploader.tsx`: Componente con dropzone, feedback visual de subida a Cloudinary y soporte alternativo de URL directa.
+  - `apps/web/src/components/admin/products-table.tsx`: Tabla brutalista minimalista con filtros por estado (`Todos`, `Publicados`, `Borradores`, `Archivados`), buscador en tiempo real, selector de categoría, toggle rápido de publicación y acciones de edición y archivado.
+  - `apps/web/src/components/admin/product-form.tsx`: Formulario unificado para creación y edición con validación de SKU/Slug único, badges de destacado/nuevo, control de stock y galería con asignación de imagen principal.
+  - Páginas `/admin/products`, `/admin/products/new` y `/admin/products/[id]` operativas y desplegadas en producción en Vercel (`https://kiirox.vercel.app`).
+
 ---
 
 ## 🏛️ 3. Registro de Decisiones de Arquitectura (ADRs)
@@ -127,6 +155,18 @@
 - **Decisión:** Estandarizar la salida del carrito a un texto claro con viñetas, nombres, SKUs, subtotales y total estimado, ofreciendo botones para WhatsApp, copiar al portapapeles y descarga de archivo plano `.txt`.
 - **Justificación:** Otorga flexibilidad total al cliente: puede enviar el mensaje con un solo clic a WhatsApp o guardarlo como comprobante offline.
 
+### ADR-07: Carga Segura de Imágenes a Cloudinary mediante Node SDK y Route Handlers Server-Side
+- **Decisión:** Manejar la subida de imágenes a través de un route handler de Next.js en el servidor (`/api/admin/cloudinary/upload`) autenticado por rol admin, utilizando `cloudinary.v2.uploader.upload_stream` con la carpeta `kiirox/products` y transformaciones automáticas (`f_auto,q_auto`).
+- **Justificación:** Previene la exposición de claves privadas (`CLOUDINARY_API_SECRET`), unifica las políticas de tamaño y tipos MIME, y evita requerir presets inseguros o unsigned uploads abiertos en el navegador.
+
+### ADR-08: Gestión de Productos en Páginas Dedicadas (`/admin/products`, `/admin/products/new`, `/admin/products/[id]`)
+- **Decisión:** Estructurar la administración de productos en páginas completas dedicadas en lugar de modales o drawers reducidos.
+- **Justificación:** Brinda un espacio visual limpio y ergonómico para formularios extensos (datos generales, precios, inventario, descripciones enriquecidas, etiquetas y galería múltiple de fotos), garantizando URLs compartibles, navegación estándar y fácil inspección.
+
+### ADR-09: Estrategia Híbrida de Eliminación (Borrado Lógico Preferente / Archivar + Eliminación Permanente Protegida)
+- **Decisión:** La acción de eliminación por defecto realiza un borrado lógico marcando el producto como `archived` (ocultándolo de la tienda pública pero preservando su historial de ventas e inventario). Se ofrece una acción explícita de "Eliminación Permanente" con confirmación de advertencia que borra la fila en SQL (en cascada con sus fotos) y remueve el asset de Cloudinary.
+- **Justificación:** Salvaguarda la integridad referencial y las métricas comerciales de pedidos previos, a la vez que permite purgar pruebas o productos creados por error.
+
 ---
 
 ## 🗺️ 4. Estado Actual del Roadmap
@@ -139,7 +179,8 @@
 | **Fase 3** | Frontend público moderno en Next.js 16 | 🟢 Completada |
 | **Fase 4** | Carrito de compras, WhatsApp, copiar y descargar `.txt` | 🟢 Completada |
 | **Fase 5** | Autenticación Admin (Clerk), roles y `/admin/me` | 🟢 Completada |
-| **Fase 6** | Administración de Productos (CRUD y Cloudinary) | 🟡 **Próxima a iniciar** |
-| **Fase 7** | Administración de Stock e Inventario (movimientos) | ⚪ Pendiente |
+| **Fase 6** | Administración de Productos (CRUD y Cloudinary) | 🟢 **Completada** |
+| **Fase 7** | Administración de Stock e Inventario (movimientos) | 🟡 **Próxima a iniciar** |
 | **Fase 8** | Hardening y revisión final de producción | ⚪ Pendiente |
 | **Fase 9** | Optimizaciones y auditoría | ⚪ Pendiente |
+

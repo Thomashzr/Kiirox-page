@@ -7,6 +7,12 @@
       "skillPath": "skills/platform/cloudinary-docs/SKILL.md",
       "computedHash": "2035bffb3ae42e704e01d4da43c28aa0f6c904dd70dd8f35a4b7a19af5c1f2bf"
     },
+    "cloudinary-next": {
+      "source": "cloudinary-devs/skills",
+      "sourceType": "github",
+      "skillPath": "skills/frameworks/cloudinary-next/SKILL.md",
+      "computedHash": "eb89609a441b78c3de89fed892c84f71c0f4b479e5d525434e7369162221771a"
+    },
     "codebase-design": {
       "source": "mattpocock/skills",
       "sourceType": "github",

@@ -41,6 +41,76 @@ fn dummy_admin_repo() -> AdminRepository {
         False -> Error(Unauthorized("No autorizado"))
       }
     },
+    list_admin_products: fn(_) {
+      Ok(catalog.Paginated(data: [], pagination: catalog.Pagination(page: 1, page_size: 24, total: 0)))
+    },
+    get_admin_product: fn(_) {
+      Error(admin.NotFound("Producto no encontrado"))
+    },
+    create_product: fn(input) {
+      Ok(Product(
+        id: "p-test-create",
+        sku: input.sku,
+        name: input.name,
+        slug: input.slug,
+        brand: input.brand,
+        short_description: input.short_description,
+        description: input.description,
+        price: input.price,
+        currency: input.currency,
+        stock: input.stock,
+        low_stock_threshold: input.low_stock_threshold,
+        status: input.status,
+        is_featured: input.is_featured,
+        is_new: input.is_new,
+        sort_order: input.sort_order,
+        category_id: input.category_id,
+        images: [],
+        created_at: "2026-10-07T00:00:00Z",
+        updated_at: "2026-10-07T00:00:00Z",
+      ))
+    },
+    update_product: fn(_id, input) {
+      Ok(Product(
+        id: "p-test-update",
+        sku: input.sku,
+        name: input.name,
+        slug: input.slug,
+        brand: input.brand,
+        short_description: input.short_description,
+        description: input.description,
+        price: input.price,
+        currency: input.currency,
+        stock: input.stock,
+        low_stock_threshold: input.low_stock_threshold,
+        status: input.status,
+        is_featured: input.is_featured,
+        is_new: input.is_new,
+        sort_order: input.sort_order,
+        category_id: input.category_id,
+        images: [],
+        created_at: "2026-10-07T00:00:00Z",
+        updated_at: "2026-10-07T00:00:00Z",
+      ))
+    },
+    archive_product: fn(_id) {
+      Error(admin.NotFound("Producto no encontrado"))
+    },
+    delete_product: fn(_) { Ok(Nil) },
+    add_product_image: fn(_pid, img) {
+      Ok(ProductImage(
+        id: "img-test-1",
+        product_id: "p-test-create",
+        public_id: img.public_id,
+        public_url: img.public_url,
+        alt_text: img.alt_text,
+        sort_order: img.sort_order,
+        is_primary: img.is_primary,
+        created_at: "2026-10-07T00:00:00Z",
+      ))
+    },
+    delete_product_image: fn(_, _) { Ok(Nil) },
+    set_primary_image: fn(_, _) { Ok(Nil) },
   )
 }
 
@@ -366,5 +436,105 @@ pub fn http_admin_me_missing_token_test() {
   assert res.status == 401
   let body = simulate.read_body(res)
   assert string.contains(body, "UNAUTHORIZED")
+}
+
+const valid_mock_token: String = "Bearer eyJhbGciOiJub25lIiwidHlwIjoiSldUIn0.eyJzdWIiOiJ1c2VyX3Rlc3RfY2xlcmsiLCJlbWFpbCI6InRob21hc2hlaW56ZXJnekBnbWFpbC5jb20ifQ.sig"
+
+pub fn http_admin_products_unauthorized_test() {
+  let #(repo, _, _) = setup_test_catalog()
+  let admin_repo = dummy_admin_repo()
+  let req = simulate.request(http.Get, "/api/v1/admin/products")
+  let res = router.handle_request(req, repo, admin_repo)
+
+  assert res.status == 401
+}
+
+pub fn http_admin_products_list_test() {
+  let #(repo, _, _) = setup_test_catalog()
+  let admin_repo = dummy_admin_repo()
+  let req =
+    simulate.request(http.Get, "/api/v1/admin/products")
+    |> simulate.header("authorization", valid_mock_token)
+  let res = router.handle_request(req, repo, admin_repo)
+
+  assert res.status == 200
+  let body = simulate.read_body(res)
+  assert string.contains(body, "\"data\":")
+  assert string.contains(body, "\"pagination\":")
+}
+
+pub fn http_admin_product_create_test() {
+  let #(repo, _, _) = setup_test_catalog()
+  let admin_repo = dummy_admin_repo()
+  let payload = "{\"sku\":\"GEL-TEST-99\",\"name\":\"Test Gel 99\",\"slug\":\"test-gel-99\",\"price\":1500,\"stock\":20,\"category_id\":\"c1\"}"
+  let req =
+    simulate.request(http.Post, "/api/v1/admin/products")
+    |> simulate.header("authorization", valid_mock_token)
+    |> simulate.header("content-type", "application/json")
+    |> simulate.string_body(payload)
+  let res = router.handle_request(req, repo, admin_repo)
+
+  assert res.status == 201
+  let body = simulate.read_body(res)
+  assert string.contains(body, "GEL-TEST-99")
+  assert string.contains(body, "Test Gel 99")
+}
+
+pub fn http_admin_product_update_test() {
+  let #(repo, _, _) = setup_test_catalog()
+  let admin_repo = dummy_admin_repo()
+  let payload = "{\"sku\":\"GEL-UPDATED\",\"name\":\"Updated Gel\",\"slug\":\"updated-gel\",\"price\":2500.5,\"stock\":10,\"category_id\":\"c1\"}"
+  let req =
+    simulate.request(http.Patch, "/api/v1/admin/products/p-test-update")
+    |> simulate.header("authorization", valid_mock_token)
+    |> simulate.header("content-type", "application/json")
+    |> simulate.string_body(payload)
+  let res = router.handle_request(req, repo, admin_repo)
+
+  assert res.status == 200
+  let body = simulate.read_body(res)
+  assert string.contains(body, "GEL-UPDATED")
+  assert string.contains(body, "Updated Gel")
+}
+
+pub fn http_admin_product_delete_archive_test() {
+  let #(repo, _, _) = setup_test_catalog()
+  let admin_repo = dummy_admin_repo()
+  let req =
+    simulate.request(http.Delete, "/api/v1/admin/products/p1")
+    |> simulate.header("authorization", valid_mock_token)
+  let res = router.handle_request(req, repo, admin_repo)
+
+  // In dummy_admin_repo, archive returns NotFound("Producto no encontrado")
+  assert res.status == 404
+}
+
+pub fn http_admin_product_delete_permanent_test() {
+  let #(repo, _, _) = setup_test_catalog()
+  let admin_repo = dummy_admin_repo()
+  let req =
+    simulate.request(http.Delete, "/api/v1/admin/products/p1?permanent=true")
+    |> simulate.header("authorization", valid_mock_token)
+  let res = router.handle_request(req, repo, admin_repo)
+
+  assert res.status == 200
+  let body = simulate.read_body(res)
+  assert string.contains(body, "\"status\":\"deleted\"")
+}
+
+pub fn http_admin_product_image_create_test() {
+  let #(repo, _, _) = setup_test_catalog()
+  let admin_repo = dummy_admin_repo()
+  let payload = "{\"public_id\":\"kiirox/test\",\"public_url\":\"https://res.cloudinary.com/test.jpg\",\"sort_order\":1,\"is_primary\":true}"
+  let req =
+    simulate.request(http.Post, "/api/v1/admin/products/p1/images")
+    |> simulate.header("authorization", valid_mock_token)
+    |> simulate.header("content-type", "application/json")
+    |> simulate.string_body(payload)
+  let res = router.handle_request(req, repo, admin_repo)
+
+  assert res.status == 201
+  let body = simulate.read_body(res)
+  assert string.contains(body, "kiirox/test")
 }
 

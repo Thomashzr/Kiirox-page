@@ -60,6 +60,36 @@ pub type Product {
   )
 }
 
+pub type ProductInput {
+  ProductInput(
+    sku: String,
+    name: String,
+    slug: String,
+    brand: Option(String),
+    short_description: Option(String),
+    description: Option(String),
+    price: Float,
+    currency: String,
+    stock: Int,
+    low_stock_threshold: Int,
+    status: ProductStatus,
+    is_featured: Bool,
+    is_new: Bool,
+    sort_order: Int,
+    category_id: String,
+  )
+}
+
+pub type ProductImageInput {
+  ProductImageInput(
+    public_id: String,
+    public_url: String,
+    alt_text: Option(String),
+    sort_order: Int,
+    is_primary: Bool,
+  )
+}
+
 pub fn is_available(product: Product) -> Bool {
   product.status == Published && product.stock > 0
 }
@@ -67,3 +97,4 @@ pub fn is_available(product: Product) -> Bool {
 pub fn is_low_stock(product: Product) -> Bool {
   product.stock <= product.low_stock_threshold
 }
+

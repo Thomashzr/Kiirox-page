@@ -96,7 +96,7 @@ export default async function AdminLayout({
           </a>
 
           <a
-            href="/admin#productos"
+            href="/admin/products"
             className="flex items-center gap-3 px-3 py-2.5 text-zinc-400 hover:text-white hover:bg-zinc-900 transition-colors"
           >
             <Package size={16} weight="bold" />

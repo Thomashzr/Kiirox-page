@@ -247,6 +247,76 @@ fn make_fallback_admin_repo() -> AdminRepository {
         False -> Error(Unauthorized("Administrador no autorizado"))
       }
     },
+    list_admin_products: fn(_) {
+      Ok(catalog.Paginated(data: [], pagination: catalog.Pagination(1, 24, 0)))
+    },
+    get_admin_product: fn(_) {
+      Error(admin.NotFound("Producto no encontrado"))
+    },
+    create_product: fn(input) {
+      Ok(Product(
+        id: "fallback-prod-id",
+        sku: input.sku,
+        name: input.name,
+        slug: input.slug,
+        brand: input.brand,
+        short_description: input.short_description,
+        description: input.description,
+        price: input.price,
+        currency: input.currency,
+        stock: input.stock,
+        low_stock_threshold: input.low_stock_threshold,
+        status: input.status,
+        is_featured: input.is_featured,
+        is_new: input.is_new,
+        sort_order: input.sort_order,
+        category_id: input.category_id,
+        images: [],
+        created_at: "2026-10-07T00:00:00Z",
+        updated_at: "2026-10-07T00:00:00Z",
+      ))
+    },
+    update_product: fn(_id, input) {
+      Ok(Product(
+        id: "fallback-prod-id",
+        sku: input.sku,
+        name: input.name,
+        slug: input.slug,
+        brand: input.brand,
+        short_description: input.short_description,
+        description: input.description,
+        price: input.price,
+        currency: input.currency,
+        stock: input.stock,
+        low_stock_threshold: input.low_stock_threshold,
+        status: input.status,
+        is_featured: input.is_featured,
+        is_new: input.is_new,
+        sort_order: input.sort_order,
+        category_id: input.category_id,
+        images: [],
+        created_at: "2026-10-07T00:00:00Z",
+        updated_at: "2026-10-07T00:00:00Z",
+      ))
+    },
+    archive_product: fn(_id) {
+      Error(admin.NotFound("Producto no encontrado"))
+    },
+    delete_product: fn(_) { Ok(Nil) },
+    add_product_image: fn(_pid, img) {
+      Ok(ProductImage(
+        id: "img-fb-1",
+        product_id: "fallback-prod-id",
+        public_id: img.public_id,
+        public_url: img.public_url,
+        alt_text: img.alt_text,
+        sort_order: img.sort_order,
+        is_primary: img.is_primary,
+        created_at: "2026-10-07T00:00:00Z",
+      ))
+    },
+    delete_product_image: fn(_, _) { Ok(Nil) },
+    set_primary_image: fn(_, _) { Ok(Nil) },
   )
 }
 
