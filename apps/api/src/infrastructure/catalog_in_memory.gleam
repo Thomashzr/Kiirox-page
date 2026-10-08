@@ -31,12 +31,10 @@ pub fn new(
       let page_size = int.clamp(filters.page_size, 1, 100)
       let paged = paginate(filtered, page, page_size)
 
-      Ok(
-        Paginated(
-          data: paged,
-          pagination: Pagination(page:, page_size:, total:),
-        ),
-      )
+      Ok(Paginated(
+        data: paged,
+        pagination: Pagination(page:, page_size:, total:),
+      ))
     },
     get_product_by_slug: fn(slug) {
       products
@@ -84,12 +82,10 @@ pub fn new(
           let page_size = int.clamp(filters.page_size, 1, 100)
           let paged = paginate(cat_products, page, page_size)
 
-          Ok(
-            Paginated(
-              data: paged,
-              pagination: Pagination(page:, page_size:, total:),
-            ),
-          )
+          Ok(Paginated(
+            data: paged,
+            pagination: Pagination(page:, page_size:, total:),
+          ))
         }
       }
     },
@@ -152,7 +148,10 @@ fn filter_by_featured(
   }
 }
 
-fn filter_by_new(products: List(Product), is_new: Option(Bool)) -> List(Product) {
+fn filter_by_new(
+  products: List(Product),
+  is_new: Option(Bool),
+) -> List(Product) {
   case is_new {
     None -> products
     Some(val) -> list.filter(products, fn(p) { p.is_new == val })
@@ -170,7 +169,8 @@ fn sort_products(
       list.sort(products, fn(a, b) { float.compare(b.price, a.price) })
     Some("name") ->
       list.sort(products, fn(a, b) { string.compare(a.name, b.name) })
-    _ -> list.sort(products, fn(a, b) { int.compare(a.sort_order, b.sort_order) })
+    _ ->
+      list.sort(products, fn(a, b) { int.compare(a.sort_order, b.sort_order) })
   }
 }
 

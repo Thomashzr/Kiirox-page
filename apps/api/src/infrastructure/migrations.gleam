@@ -23,7 +23,9 @@ pub fn is_migration_applied(
   version: String,
 ) -> Result(Bool, String) {
   let query =
-    pog.query("SELECT version FROM schema_migrations WHERE version = $1 LIMIT 1;")
+    pog.query(
+      "SELECT version FROM schema_migrations WHERE version = $1 LIMIT 1;",
+    )
     |> pog.parameter(pog.text(version))
     |> pog.returning(decode.string)
 
@@ -49,7 +51,10 @@ pub fn apply_migration(
         |> pog.execute(conn)
         |> result.replace(Nil)
         |> result.map_error(fn(err) {
-          "Failed executing migration " <> version <> ": " <> error_to_string(err)
+          "Failed executing migration "
+          <> version
+          <> ": "
+          <> error_to_string(err)
         }),
       )
 
@@ -59,7 +64,10 @@ pub fn apply_migration(
         |> pog.execute(conn)
         |> result.replace(Nil)
         |> result.map_error(fn(err) {
-          "Failed recording migration " <> version <> ": " <> error_to_string(err)
+          "Failed recording migration "
+          <> version
+          <> ": "
+          <> error_to_string(err)
         }),
       )
 
@@ -87,15 +95,10 @@ fn error_to_string(err: pog.QueryError) -> String {
       "Constraint violation on " <> constraint <> ": " <> message
     pog.PostgresqlError(code, name, message) ->
       "[" <> code <> "] " <> name <> ": " <> message
-    pog.UnexpectedArgumentCount(_expected, _got) ->
-      "Unexpected argument count"
-    pog.UnexpectedArgumentType(_expected, _got) ->
-      "Unexpected argument type"
-    pog.UnexpectedResultType(_) ->
-      "Unexpected result type"
-    pog.QueryTimeout ->
-      "Query timeout"
-    pog.ConnectionUnavailable ->
-      "Connection unavailable"
+    pog.UnexpectedArgumentCount(_expected, _got) -> "Unexpected argument count"
+    pog.UnexpectedArgumentType(_expected, _got) -> "Unexpected argument type"
+    pog.UnexpectedResultType(_) -> "Unexpected result type"
+    pog.QueryTimeout -> "Query timeout"
+    pog.ConnectionUnavailable -> "Connection unavailable"
   }
 }

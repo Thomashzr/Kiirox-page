@@ -1,7 +1,7 @@
 'use client';
 
 import React, { Suspense } from 'react';
-import { SignInButton, SignUpButton, Show, UserButton } from '@clerk/nextjs';
+import { SignInButton, Show, UserButton } from '@clerk/nextjs';
 import { BrandLogo } from './brand-logo';
 import { WhatsappLogo, ShoppingBag } from '@phosphor-icons/react';
 import { useCart } from '../context/cart-context';

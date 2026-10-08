@@ -41,10 +41,16 @@ pub fn authenticate_admin(
   next: fn(AdminUser) -> Response,
 ) -> Response {
   case extract_bearer_token(req) {
-    Error(_) -> error_response("UNAUTHORIZED", "Falta token de autorización Bearer", 401)
+    Error(_) ->
+      error_response("UNAUTHORIZED", "Falta token de autorización Bearer", 401)
     Ok(token) -> {
       case decode_and_verify_token(token) {
-        Error(_) -> error_response("UNAUTHORIZED", "Token de autorización inválido o malformado", 401)
+        Error(_) ->
+          error_response(
+            "UNAUTHORIZED",
+            "Token de autorización inválido o malformado",
+            401,
+          )
         Ok(claims) -> {
           let user_result = case admin_repo.find_admin_by_clerk_id(claims.sub) {
             Ok(user) -> Ok(user)
@@ -61,8 +67,10 @@ pub fn authenticate_admin(
             Error(Unauthorized(msg)) -> error_response("UNAUTHORIZED", msg, 401)
             Error(Forbidden(msg)) -> error_response("FORBIDDEN", msg, 403)
             Error(NotFound(msg)) -> error_response("NOT_FOUND", msg, 404)
-            Error(ValidationError(msg)) -> error_response("VALIDATION_ERROR", msg, 400)
-            Error(DatabaseError(msg)) -> error_response("DATABASE_ERROR", msg, 500)
+            Error(ValidationError(msg)) ->
+              error_response("VALIDATION_ERROR", msg, 400)
+            Error(DatabaseError(msg)) ->
+              error_response("DATABASE_ERROR", msg, 500)
           }
         }
       }
@@ -119,7 +127,12 @@ pub fn handle_admin_create_product(
   use body <- wisp.require_bit_array_body(req)
 
   case json.parse_bits(body, product_input_decoder()) {
-    Error(_) -> error_response("INVALID_BODY", "Payload JSON inválido para creación de producto", 400)
+    Error(_) ->
+      error_response(
+        "INVALID_BODY",
+        "Payload JSON inválido para creación de producto",
+        400,
+      )
     Ok(input) -> {
       case admin_repo.create_product(input) {
         Ok(product) ->
@@ -142,7 +155,12 @@ pub fn handle_admin_update_product(
   use body <- wisp.require_bit_array_body(req)
 
   case json.parse_bits(body, product_input_decoder()) {
-    Error(_) -> error_response("INVALID_BODY", "Payload JSON inválido para actualización de producto", 400)
+    Error(_) ->
+      error_response(
+        "INVALID_BODY",
+        "Payload JSON inválido para actualización de producto",
+        400,
+      )
     Ok(input) -> {
       case admin_repo.update_product(id, input) {
         Ok(product) ->
@@ -205,7 +223,12 @@ pub fn handle_admin_add_image(
   use body <- wisp.require_bit_array_body(req)
 
   case json.parse_bits(body, product_image_input_decoder()) {
-    Error(_) -> error_response("INVALID_BODY", "Payload JSON inválido para imagen de producto", 400)
+    Error(_) ->
+      error_response(
+        "INVALID_BODY",
+        "Payload JSON inválido para imagen de producto",
+        400,
+      )
     Ok(input) -> {
       case admin_repo.add_product_image(product_id, input) {
         Ok(img) ->
@@ -424,13 +447,29 @@ fn product_input_decoder() -> decode.Decoder(ProductInput) {
   use sku <- decode.field("sku", decode.string)
   use name <- decode.field("name", decode.string)
   use slug <- decode.field("slug", decode.string)
-  use brand <- decode.optional_field("brand", None, decode.optional(decode.string))
-  use short_description <- decode.optional_field("short_description", None, decode.optional(decode.string))
-  use description <- decode.optional_field("description", None, decode.optional(decode.string))
+  use brand <- decode.optional_field(
+    "brand",
+    None,
+    decode.optional(decode.string),
+  )
+  use short_description <- decode.optional_field(
+    "short_description",
+    None,
+    decode.optional(decode.string),
+  )
+  use description <- decode.optional_field(
+    "description",
+    None,
+    decode.optional(decode.string),
+  )
   use price <- decode.field("price", float_or_int_decoder())
   use currency <- decode.optional_field("currency", "ARS", decode.string)
   use stock <- decode.field("stock", decode.int)
-  use low_stock_threshold <- decode.optional_field("low_stock_threshold", 5, decode.int)
+  use low_stock_threshold <- decode.optional_field(
+    "low_stock_threshold",
+    5,
+    decode.int,
+  )
   use status_str <- decode.optional_field("status", "draft", decode.string)
   use is_featured <- decode.optional_field("is_featured", False, decode.bool)
   use is_new <- decode.optional_field("is_new", False, decode.bool)
@@ -464,7 +503,11 @@ fn product_input_decoder() -> decode.Decoder(ProductInput) {
 fn product_image_input_decoder() -> decode.Decoder(ProductImageInput) {
   use public_id <- decode.field("public_id", decode.string)
   use public_url <- decode.field("public_url", decode.string)
-  use alt_text <- decode.optional_field("alt_text", None, decode.optional(decode.string))
+  use alt_text <- decode.optional_field(
+    "alt_text",
+    None,
+    decode.optional(decode.string),
+  )
   use sort_order <- decode.optional_field("sort_order", 0, decode.int)
   use is_primary <- decode.optional_field("is_primary", False, decode.bool)
 

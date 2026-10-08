@@ -7,16 +7,12 @@ import {
   Warning,
   CheckCircle,
   MagnifyingGlass,
-  SlidersHorizontal,
   ClockCounterClockwise,
   ArrowUpRight,
   ArrowDownRight,
   Scales,
   ArrowsClockwise,
-  Funnel,
-  TrendUp,
   Stack,
-  Export,
 } from '@phosphor-icons/react';
 import { Category, InventoryMovementWithProduct, MovementType } from '../../types';
 import {

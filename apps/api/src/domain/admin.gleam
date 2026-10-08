@@ -80,6 +80,3 @@ pub type AdminRepository {
       Result(Paginated(InventoryMovement), AdminError),
   )
 }
-
-
-

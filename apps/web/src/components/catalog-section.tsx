@@ -8,8 +8,6 @@ import {
   MagnifyingGlass,
   SlidersHorizontal,
   X,
-  ArrowRight,
-  Eye,
   Plus,
 } from '@phosphor-icons/react';
 

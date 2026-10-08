@@ -88,7 +88,8 @@ pub fn movement_type_test() {
 }
 
 pub fn database_config_test() {
-  let url = "postgresql://user:pass@ep-cool-sun.aws.neon.tech:5432/neondb?sslmode=require"
+  let url =
+    "postgresql://user:pass@ep-cool-sun.aws.neon.tech:5432/neondb?sslmode=require"
   let res = database.config_from_url(url)
   assert res != Error("Failed to parse database connection URL")
 }

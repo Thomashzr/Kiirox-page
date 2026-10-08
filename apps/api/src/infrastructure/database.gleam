@@ -17,14 +17,7 @@ pub fn start(config: pog.Config) -> actor.StartResult(pog.Connection) {
 pub fn config_from_url(database_url: String) -> Result(pog.Config, String) {
   let name = process.new_name("pog_db_pool")
   case pog.url_config(name, database_url) {
-    Ok(cfg) ->
-      Ok(
-        pog.Config(
-          ..cfg,
-          ssl: pog.SslVerified,
-          pool_size: 2,
-        ),
-      )
+    Ok(cfg) -> Ok(pog.Config(..cfg, ssl: pog.SslVerified, pool_size: 2))
     Error(Nil) -> Error("Failed to parse database connection URL")
   }
 }
@@ -40,7 +33,10 @@ pub fn connect(database_url: String) -> Result(pog.Connection, String) {
   }
 }
 
-fn wait_for_ready(conn: pog.Connection, attempts_left: Int) -> Result(Nil, String) {
+fn wait_for_ready(
+  conn: pog.Connection,
+  attempts_left: Int,
+) -> Result(Nil, String) {
   case attempts_left <= 0 {
     True -> Error("Timed out waiting for database connection to be ready")
     False -> {

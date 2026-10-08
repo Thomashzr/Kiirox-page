@@ -97,4 +97,3 @@ pub fn is_available(product: Product) -> Bool {
 pub fn is_low_stock(product: Product) -> Bool {
   product.stock <= product.low_stock_threshold
 }
-

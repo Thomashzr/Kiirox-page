@@ -9,7 +9,6 @@ import domain/product.{type Product, type ProductImage, status_to_string}
 import gleam/json.{type Json}
 import gleam/option.{type Option, None, Some}
 
-
 pub fn admin_user_to_json(admin: AdminUser) -> Json {
   json.object([
     #("id", json.string(admin.id)),
@@ -21,7 +20,6 @@ pub fn admin_user_to_json(admin: AdminUser) -> Json {
     #("updated_at", json.string(admin.updated_at)),
   ])
 }
-
 
 pub fn category_to_json(cat: Category) -> Json {
   json.object([

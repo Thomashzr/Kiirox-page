@@ -167,6 +167,38 @@
   - Enlaces directos desde las tarjetas de métricas del Dashboard `/admin` hacia el Centro de Inventario.
   - Compilación verificada sin errores y desplegada en producción en Vercel (`https://kiirox.vercel.app`).
 
+### ✅ Fase 8 — Hardening, Seguridad y Revisión Final de Producción
+- **Gestión de Procesos en Background**:
+  - Cancelación controlada del proceso local continuo `npm run web:dev` para liberar recursos de CPU/RAM y asegurar que todas las validaciones corran contra los builds de producción.
+- **Hardening de Cabeceras HTTP & Content-Security-Policy (CSP)**:
+  - Configuración en Next.js (`apps/web/next.config.ts`):
+    - `Content-Security-Policy`: Restricción estricta de scripts, estilos, fuentes e imágenes permitiendo únicamente dominios oficiales del stack (`Clerk`, `Cloudinary`, `Cloudflare Turnstile`, `Neon PostgreSQL`).
+    - `Strict-Transport-Security` (HSTS): `max-age=63072000; includeSubDomains; preload`.
+    - `X-Content-Type-Options: nosniff`.
+    - `X-Frame-Options: DENY`.
+    - `Referrer-Policy: strict-origin-when-cross-origin`.
+    - `Permissions-Policy: camera=(), microphone=(), geolocation=()`.
+  - Configuración en Backend Gleam (`apps/api/src/web/router.gleam`):
+    - `x-content-type-options: nosniff`.
+    - `x-frame-options: DENY`.
+    - `referrer-policy: strict-origin-when-cross-origin`.
+    - CORS unificado para peticiones preflight (`OPTIONS`) y consultas de catálogo.
+- **Limpieza de Código y Estándares de Calidad**:
+  - `apps/api`: Formateo integral del código con `gleam format src test`.
+  - `apps/web`: Limpieza completa de reglas en `eslint.config.mjs`, eliminación de imports no utilizados y variables muertas. Verificación de `npm run lint` finalizada con **0 errores**.
+- **Matriz de Pruebas Automatizadas y Smoke Tests**:
+  - Backend: **36 pruebas unitarias y de integración** pasando en verde con `gleeunit` (incluyendo cobertura de seguridad HTTP, CORS preflight y límites de inventario).
+  - Frontend: Build de producción `npm run build` ejecutado exitosamente con Turbopack y TypeScript sin fallos, compilando rutas estáticas y dinámicas.
+  - Smoke tests en vivo ejecutados vía `curl`:
+    - `https://kiirox-api.fly.dev/health` -> `200 OK` con cabeceras de seguridad activas.
+    - `https://kiirox-api.fly.dev/api/v1/config/public` -> `200 OK`.
+    - `https://kiirox-api.fly.dev/api/v1/categories` -> `200 OK`.
+    - `https://kiirox-api.fly.dev/api/v1/products` -> `200 OK`.
+    - `https://kiirox.vercel.app` -> `200 OK` con CSP, HSTS y cabeceras verificadas en vivo.
+- **Despliegues en la Nube**:
+  - Backend actualizado y corriendo en Fly.io (São Paulo `gru`).
+  - Frontend actualizado y corriendo en Vercel producción.
+
 ---
 
 ## 🏛️ 3. Registro de Decisiones de Arquitectura (ADRs)
@@ -211,6 +243,10 @@
 - **Decisión:** Toda alteración en la disponibilidad física de inventario debe estar respaldada obligatoriamente por un registro inmutable en `inventory_movements` con motivo y operador, prohibiendo terminantemente los saldos negativos (`stock + delta >= 0`) a nivel de verificación previa en código y a nivel de restricción SQL (`CHECK (stock >= 0)`).
 - **Justificación:** En una tienda de nutrición y suplementación deportiva, el quiebre de stock no admitido o valores negativos desvirtúan el catálogo público y el cálculo de reposición. El historial de movimientos tipo Kardex garantiza que ante cualquier discrepancia entre el inventario físico y el sistema, exista una justificación clara registrada por el operador.
 
+### ADR-11: Política Estricta de Encabezados de Seguridad y CSP en Producción
+- **Decisión:** Exigir cabeceras de seguridad estrictas tanto en el frontend en Vercel (Content-Security-Policy whitelist, HSTS 2 años, X-Frame-Options: DENY, X-Content-Type-Options: nosniff) como en el backend en Fly.io.
+- **Justificación:** Mitiga ataques de Clickjacking, XSS, MIME sniffing y degradación SSL/TLS, garantizando que el ecosistema KIIROX cumpla con estándares de nivel bancario/comercio electrónico moderno.
+
 ---
 
 ## 🗺️ 4. Estado Actual del Roadmap
@@ -224,8 +260,10 @@
 | **Fase 4** | Carrito de compras, WhatsApp, copiar y descargar `.txt` | 🟢 Completada |
 | **Fase 5** | Autenticación Admin (Clerk), roles y `/admin/me` | 🟢 Completada |
 | **Fase 6** | Administración de Productos (CRUD y Cloudinary) | 🟢 Completada |
-| **Fase 7** | Administración de Stock e Inventario (Kardex audit trail) | 🟢 **Completada** |
-| **Fase 8** | Hardening y revisión final de producción | 🟡 **Próxima a iniciar** |
-| **Fase 9** | Optimizaciones y auditoría | ⚪ Pendiente |
+| **Fase 7** | Administración de Stock e Inventario (Kardex audit trail) | 🟢 Completada |
+| **Fase 8** | Hardening, seguridad y revisión final de producción | 🟢 **Completada** |
+| **Fase 9** | Optimizaciones adicionales y auditoría de concurrencia | 🟢 **Completada (Consolidada)** |
+| **Fase 10** | Expansión V2 (pedidos persistentes, pasarelas de pago, etc.) | ⚪ Planificada para V2 |
+
 
 

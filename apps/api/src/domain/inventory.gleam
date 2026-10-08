@@ -72,4 +72,3 @@ pub type InventoryFilters {
     page_size: Int,
   )
 }
-

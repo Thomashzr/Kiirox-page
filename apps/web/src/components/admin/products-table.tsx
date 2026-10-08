@@ -8,14 +8,10 @@ import {
   PencilSimple,
   Archive,
   Trash,
-  CheckCircle,
   Eye,
   EyeSlash,
   Star,
   Sparkle,
-  WarningCircle,
-  ArrowSquareOut,
-  SlidersHorizontal,
 } from '@phosphor-icons/react';
 import {
   AdminProductListItem,

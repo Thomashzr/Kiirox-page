@@ -4,8 +4,6 @@ import React, { useState, useRef } from 'react';
 import {
   UploadSimple,
   CircleNotch,
-  Image as ImageIcon,
-  CheckCircle,
   WarningCircle,
   Link as LinkIcon,
 } from '@phosphor-icons/react';

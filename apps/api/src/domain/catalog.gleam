@@ -27,26 +27,15 @@ pub fn default_filters() -> ProductFilters {
 }
 
 pub type Pagination {
-  Pagination(
-    page: Int,
-    page_size: Int,
-    total: Int,
-  )
+  Pagination(page: Int, page_size: Int, total: Int)
 }
 
 pub type Paginated(a) {
-  Paginated(
-    data: List(a),
-    pagination: Pagination,
-  )
+  Paginated(data: List(a), pagination: Pagination)
 }
 
 pub type StoreConfig {
-  StoreConfig(
-    store_name: String,
-    whatsapp_number: String,
-    currency: String,
-  )
+  StoreConfig(store_name: String, whatsapp_number: String, currency: String)
 }
 
 pub type CatalogError {
@@ -58,11 +47,13 @@ pub type CatalogError {
 
 pub type CatalogRepository {
   CatalogRepository(
-    list_products: fn(ProductFilters) -> Result(Paginated(Product), CatalogError),
+    list_products: fn(ProductFilters) ->
+      Result(Paginated(Product), CatalogError),
     get_product_by_slug: fn(String) -> Result(Product, CatalogError),
     list_categories: fn() -> Result(List(Category), CatalogError),
     get_category_by_slug: fn(String) -> Result(Category, CatalogError),
-    get_category_products: fn(String, ProductFilters) -> Result(Paginated(Product), CatalogError),
+    get_category_products: fn(String, ProductFilters) ->
+      Result(Paginated(Product), CatalogError),
     get_public_config: fn() -> StoreConfig,
   )
 }

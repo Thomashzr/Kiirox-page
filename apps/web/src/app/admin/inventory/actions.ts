@@ -142,14 +142,6 @@ export async function getInventoryMovements(params?: {
   const pageSize = Math.min(100, Math.max(1, params?.page_size || 25));
   const offset = (page - 1) * pageSize;
 
-  let whereClauses: string[] = ['1=1'];
-  if (params?.product_id && params.product_id !== 'all') {
-    whereClauses.push(`im.product_id = '${params.product_id}'`);
-  }
-  if (params?.movement_type && params.movement_type !== 'all') {
-    whereClauses.push(`im.movement_type = '${params.movement_type}'`);
-  }
-
   // Base query with joins
   const items = await sql`
     SELECT 

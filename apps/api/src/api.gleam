@@ -22,7 +22,6 @@ import web/router
 import wisp
 import wisp/wisp_mist
 
-
 pub fn main() -> Nil {
   io.println("=== KIIROX API Starting ===")
 
@@ -61,10 +60,7 @@ pub fn main() -> Nil {
             #("001_initial_schema", schema.migration_001_initial_schema),
           ]
           let _ = migrations.run_all(conn, migration_list)
-          #(
-            catalog_postgres.new(conn, store_cfg),
-            admin_postgres.new(conn),
-          )
+          #(catalog_postgres.new(conn, store_cfg), admin_postgres.new(conn))
         }
         Error(err) -> {
           io.println("PostgreSQL connection error: " <> err)
@@ -77,7 +73,6 @@ pub fn main() -> Nil {
 
   let secret_key_base = wisp.random_string(64)
   let handler = fn(req) { router.handle_request(req, repo, admin_repo) }
-
 
   let assert Ok(_) =
     handler
@@ -211,7 +206,7 @@ fn make_fallback_repo(store_cfg: StoreConfig) -> CatalogRepository {
       brand: Some("Optimum Nutrition"),
       short_description: Some("Proteína aislada de suero"),
       description: None,
-      price: 52000.0,
+      price: 52_000.0,
       currency: "ARS",
       stock: 15,
       low_stock_threshold: 3,
@@ -251,9 +246,7 @@ fn make_fallback_admin_repo() -> AdminRepository {
     list_admin_products: fn(_) {
       Ok(catalog.Paginated(data: [], pagination: catalog.Pagination(1, 24, 0)))
     },
-    get_admin_product: fn(_) {
-      Error(admin.NotFound("Producto no encontrado"))
-    },
+    get_admin_product: fn(_) { Error(admin.NotFound("Producto no encontrado")) },
     create_product: fn(input) {
       Ok(Product(
         id: "fallback-prod-id",
@@ -300,9 +293,7 @@ fn make_fallback_admin_repo() -> AdminRepository {
         updated_at: "2026-10-07T00:00:00Z",
       ))
     },
-    archive_product: fn(_id) {
-      Error(admin.NotFound("Producto no encontrado"))
-    },
+    archive_product: fn(_id) { Error(admin.NotFound("Producto no encontrado")) },
     delete_product: fn(_) { Ok(Nil) },
     add_product_image: fn(_pid, img) {
       Ok(ProductImage(
@@ -360,4 +351,3 @@ fn make_fallback_admin_repo() -> AdminRepository {
     },
   )
 }
-

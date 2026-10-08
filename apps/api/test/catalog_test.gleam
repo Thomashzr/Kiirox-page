@@ -7,9 +7,7 @@ import domain/catalog.{
 }
 import domain/category.{type Category, Category}
 import domain/inventory.{InventoryMovement, Purchase}
-import domain/product.{
-  type Product, Draft, Product, ProductImage, Published,
-}
+import domain/product.{type Product, Draft, Product, ProductImage, Published}
 import gleam/http
 import gleam/list
 import gleam/option.{None, Some}
@@ -43,11 +41,12 @@ fn dummy_admin_repo() -> AdminRepository {
       }
     },
     list_admin_products: fn(_) {
-      Ok(catalog.Paginated(data: [], pagination: catalog.Pagination(page: 1, page_size: 24, total: 0)))
+      Ok(catalog.Paginated(
+        data: [],
+        pagination: catalog.Pagination(page: 1, page_size: 24, total: 0),
+      ))
     },
-    get_admin_product: fn(_) {
-      Error(admin.NotFound("Producto no encontrado"))
-    },
+    get_admin_product: fn(_) { Error(admin.NotFound("Producto no encontrado")) },
     create_product: fn(input) {
       Ok(Product(
         id: "p-test-create",
@@ -94,9 +93,7 @@ fn dummy_admin_repo() -> AdminRepository {
         updated_at: "2026-10-07T00:00:00Z",
       ))
     },
-    archive_product: fn(_id) {
-      Error(admin.NotFound("Producto no encontrado"))
-    },
+    archive_product: fn(_id) { Error(admin.NotFound("Producto no encontrado")) },
     delete_product: fn(_) { Ok(Nil) },
     add_product_image: fn(_pid, img) {
       Ok(ProductImage(
@@ -168,11 +165,13 @@ fn dummy_admin_repo() -> AdminRepository {
           admin_user_id: None,
           created_at: "2026-10-07T00:00:00Z",
         )
-      Ok(catalog.Paginated(data: [mov], pagination: catalog.Pagination(page: 1, page_size: 24, total: 1)))
+      Ok(catalog.Paginated(
+        data: [mov],
+        pagination: catalog.Pagination(page: 1, page_size: 24, total: 1),
+      ))
     },
   )
 }
-
 
 fn setup_test_catalog() -> #(CatalogRepository, List(Category), List(Product)) {
   let cat1 =
@@ -269,7 +268,7 @@ fn setup_test_catalog() -> #(CatalogRepository, List(Category), List(Product)) {
       brand: Some("ON"),
       short_description: None,
       description: None,
-      price: 50000.0,
+      price: 50_000.0,
       currency: "ARS",
       stock: 10,
       low_stock_threshold: 2,
@@ -346,12 +345,12 @@ pub fn get_product_by_slug_test() {
   assert prod.is_featured == True
 
   // Draft product not found
-  assert catalog.get_product_by_slug(repo, "proteina-on-borrador") ==
-    Error(ProductNotFound("proteina-on-borrador"))
+  assert catalog.get_product_by_slug(repo, "proteina-on-borrador")
+    == Error(ProductNotFound("proteina-on-borrador"))
 
   // Nonexistent product not found
-  assert catalog.get_product_by_slug(repo, "inexistente") ==
-    Error(ProductNotFound("inexistente"))
+  assert catalog.get_product_by_slug(repo, "inexistente")
+    == Error(ProductNotFound("inexistente"))
 }
 
 pub fn list_categories_test() {
@@ -371,10 +370,11 @@ pub fn get_category_products_test() {
   assert list.length(res.data) == 2
 
   assert catalog.get_category_products(
-    repo,
-    "categoria-fantasma",
-    default_filters(),
-  ) == Error(CategoryNotFound("categoria-fantasma"))
+      repo,
+      "categoria-fantasma",
+      default_filters(),
+    )
+    == Error(CategoryNotFound("categoria-fantasma"))
 }
 
 // Router HTTP integration tests
@@ -451,14 +451,16 @@ pub fn http_category_products_endpoint_test() {
   let admin_repo = dummy_admin_repo()
 
   // 200 OK for valid category
-  let req = simulate.request(http.Get, "/api/v1/categories/geles-energeticos/products")
+  let req =
+    simulate.request(http.Get, "/api/v1/categories/geles-energeticos/products")
   let res = router.handle_request(req, repo, admin_repo)
   assert res.status == 200
   let body = simulate.read_body(res)
   assert string.contains(body, "gel-maurten-100")
 
   // 404 for missing category
-  let req_404 = simulate.request(http.Get, "/api/v1/categories/no-existe/products")
+  let req_404 =
+    simulate.request(http.Get, "/api/v1/categories/no-existe/products")
   let res_404 = router.handle_request(req_404, repo, admin_repo)
   assert res_404.status == 404
   let body_404 = simulate.read_body(res_404)
@@ -525,7 +527,8 @@ pub fn http_admin_products_list_test() {
 pub fn http_admin_product_create_test() {
   let #(repo, _, _) = setup_test_catalog()
   let admin_repo = dummy_admin_repo()
-  let payload = "{\"sku\":\"GEL-TEST-99\",\"name\":\"Test Gel 99\",\"slug\":\"test-gel-99\",\"price\":1500,\"stock\":20,\"category_id\":\"c1\"}"
+  let payload =
+    "{\"sku\":\"GEL-TEST-99\",\"name\":\"Test Gel 99\",\"slug\":\"test-gel-99\",\"price\":1500,\"stock\":20,\"category_id\":\"c1\"}"
   let req =
     simulate.request(http.Post, "/api/v1/admin/products")
     |> simulate.header("authorization", valid_mock_token)
@@ -542,7 +545,8 @@ pub fn http_admin_product_create_test() {
 pub fn http_admin_product_update_test() {
   let #(repo, _, _) = setup_test_catalog()
   let admin_repo = dummy_admin_repo()
-  let payload = "{\"sku\":\"GEL-UPDATED\",\"name\":\"Updated Gel\",\"slug\":\"updated-gel\",\"price\":2500.5,\"stock\":10,\"category_id\":\"c1\"}"
+  let payload =
+    "{\"sku\":\"GEL-UPDATED\",\"name\":\"Updated Gel\",\"slug\":\"updated-gel\",\"price\":2500.5,\"stock\":10,\"category_id\":\"c1\"}"
   let req =
     simulate.request(http.Patch, "/api/v1/admin/products/p-test-update")
     |> simulate.header("authorization", valid_mock_token)
@@ -584,7 +588,8 @@ pub fn http_admin_product_delete_permanent_test() {
 pub fn http_admin_product_image_create_test() {
   let #(repo, _, _) = setup_test_catalog()
   let admin_repo = dummy_admin_repo()
-  let payload = "{\"public_id\":\"kiirox/test\",\"public_url\":\"https://res.cloudinary.com/test.jpg\",\"sort_order\":1,\"is_primary\":true}"
+  let payload =
+    "{\"public_id\":\"kiirox/test\",\"public_url\":\"https://res.cloudinary.com/test.jpg\",\"sort_order\":1,\"is_primary\":true}"
   let req =
     simulate.request(http.Post, "/api/v1/admin/products/p1/images")
     |> simulate.header("authorization", valid_mock_token)
@@ -600,7 +605,8 @@ pub fn http_admin_product_image_create_test() {
 pub fn http_admin_inventory_adjust_test() {
   let #(repo, _, _) = setup_test_catalog()
   let admin_repo = dummy_admin_repo()
-  let payload = "{\"product_id\":\"p1\",\"delta\":10,\"movement_type\":\"purchase\",\"reason\":\"Compra de lote nuevo\"}"
+  let payload =
+    "{\"product_id\":\"p1\",\"delta\":10,\"movement_type\":\"purchase\",\"reason\":\"Compra de lote nuevo\"}"
   let req =
     simulate.request(http.Post, "/api/v1/admin/inventory/adjust")
     |> simulate.header("authorization", valid_mock_token)
@@ -617,7 +623,8 @@ pub fn http_admin_inventory_adjust_test() {
 pub fn http_admin_inventory_adjust_insufficient_stock_test() {
   let #(repo, _, _) = setup_test_catalog()
   let admin_repo = dummy_admin_repo()
-  let payload = "{\"product_id\":\"p1\",\"delta\":-500,\"movement_type\":\"sale\",\"reason\":\"Salida excesiva\"}"
+  let payload =
+    "{\"product_id\":\"p1\",\"delta\":-500,\"movement_type\":\"sale\",\"reason\":\"Salida excesiva\"}"
   let req =
     simulate.request(http.Post, "/api/v1/admin/inventory/adjust")
     |> simulate.header("authorization", valid_mock_token)
@@ -658,4 +665,28 @@ pub fn http_admin_product_movements_test() {
   assert string.contains(body, "mov-test-1")
 }
 
+pub fn http_security_headers_test() {
+  let #(repo, _, _) = setup_test_catalog()
+  let admin_repo = dummy_admin_repo()
+  let req = simulate.request(http.Get, "/health")
+  let res = router.handle_request(req, repo, admin_repo)
 
+  assert res.status == 200
+  assert list.key_find(res.headers, "x-content-type-options") == Ok("nosniff")
+  assert list.key_find(res.headers, "x-frame-options") == Ok("DENY")
+  assert list.key_find(res.headers, "referrer-policy")
+    == Ok("strict-origin-when-cross-origin")
+  assert list.key_find(res.headers, "access-control-allow-origin") == Ok("*")
+}
+
+pub fn http_options_cors_preflight_test() {
+  let #(repo, _, _) = setup_test_catalog()
+  let admin_repo = dummy_admin_repo()
+  let req = simulate.request(http.Options, "/api/v1/products")
+  let res = router.handle_request(req, repo, admin_repo)
+
+  assert res.status == 204
+  assert list.key_find(res.headers, "access-control-allow-origin") == Ok("*")
+  assert list.key_find(res.headers, "access-control-allow-methods")
+    == Ok("GET, POST, PATCH, DELETE, OPTIONS")
+}

@@ -16,7 +16,7 @@ export function ProductModal({
   onClose,
   whatsappNumber = '+5491100000000',
 }: ProductModalProps) {
-  const { addItem, items } = useCart();
+  const { addItem } = useCart();
   const [quantity, setQuantity] = useState(1);
 
   useEffect(() => {

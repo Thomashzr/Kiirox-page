@@ -9,7 +9,6 @@ import {
   Stack,
   ChartBar,
   ShieldCheck,
-  SignOut,
   ArrowSquareOut,
   WarningOctagon,
 } from '@phosphor-icons/react/dist/ssr';

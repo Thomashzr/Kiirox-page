@@ -9,10 +9,7 @@ import {
   CircleNotch,
   Trash,
   Star,
-  CheckCircle,
-  WarningCircle,
   Archive,
-  Image as ImageIcon,
 } from '@phosphor-icons/react';
 import {
   createProductAction,
@@ -48,7 +45,7 @@ export function ProductForm({ mode, categories, initialData }: ProductFormProps)
     initialData?.category_id || categories[0]?.id || ''
   );
   const [price, setPrice] = useState(initialData?.price ? String(initialData.price) : '');
-  const [currency, setCurrency] = useState(initialData?.currency || 'ARS');
+  const [currency] = useState(initialData?.currency || 'ARS');
   const [stock, setStock] = useState(initialData?.stock !== undefined ? String(initialData.stock) : '0');
   const [lowStockThreshold, setLowStockThreshold] = useState(
     initialData?.low_stock_threshold !== undefined ? String(initialData.low_stock_threshold) : '5'
@@ -58,7 +55,7 @@ export function ProductForm({ mode, categories, initialData }: ProductFormProps)
   );
   const [isFeatured, setIsFeatured] = useState(initialData?.is_featured || false);
   const [isNew, setIsNew] = useState(initialData?.is_new || false);
-  const [sortOrder, setSortOrder] = useState(
+  const [sortOrder] = useState(
     initialData?.sort_order !== undefined ? String(initialData.sort_order) : '0'
   );
   const [shortDescription, setShortDescription] = useState(initialData?.short_description || '');

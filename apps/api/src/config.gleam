@@ -30,8 +30,7 @@ pub fn load() -> Result(Config, String) {
   let clerk_secret_key = envoy.get("CLERK_SECRET_KEY") |> option.from_result
   let cloudinary_cloud_name =
     envoy.get("CLOUDINARY_CLOUD_NAME") |> option.from_result
-  let cloudinary_api_key =
-    envoy.get("CLOUDINARY_API_KEY") |> option.from_result
+  let cloudinary_api_key = envoy.get("CLOUDINARY_API_KEY") |> option.from_result
   let cloudinary_api_secret =
     envoy.get("CLOUDINARY_API_SECRET") |> option.from_result
 

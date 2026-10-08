@@ -29,27 +29,15 @@ pub fn new(conn: pog.Connection) -> AdminRepository {
     find_admin_by_clerk_id: fn(clerk_id) {
       find_admin_by_clerk_id_from_db(conn, clerk_id)
     },
-    find_admin_by_email: fn(email) {
-      find_admin_by_email_from_db(conn, email)
-    },
+    find_admin_by_email: fn(email) { find_admin_by_email_from_db(conn, email) },
     list_admin_products: fn(filters) {
       list_admin_products_from_db(conn, filters)
     },
-    get_admin_product: fn(id) {
-      get_admin_product_from_db(conn, id)
-    },
-    create_product: fn(input) {
-      create_product_in_db(conn, input)
-    },
-    update_product: fn(id, input) {
-      update_product_in_db(conn, id, input)
-    },
-    archive_product: fn(id) {
-      archive_product_in_db(conn, id)
-    },
-    delete_product: fn(id) {
-      delete_product_in_db(conn, id)
-    },
+    get_admin_product: fn(id) { get_admin_product_from_db(conn, id) },
+    create_product: fn(input) { create_product_in_db(conn, input) },
+    update_product: fn(id, input) { update_product_in_db(conn, id, input) },
+    archive_product: fn(id) { archive_product_in_db(conn, id) },
+    delete_product: fn(id) { delete_product_in_db(conn, id) },
     add_product_image: fn(product_id, input) {
       add_product_image_in_db(conn, product_id, input)
     },
@@ -98,7 +86,8 @@ fn find_admin_by_clerk_id_from_db(
   conn: pog.Connection,
   clerk_id: String,
 ) -> Result(AdminUser, AdminError) {
-  let sql = "
+  let sql =
+    "
     SELECT id::text, clerk_user_id, email, role, is_active, created_at::text, updated_at::text
     FROM admin_users
     WHERE clerk_user_id = $1 AND is_active = true
@@ -122,7 +111,8 @@ fn find_admin_by_email_from_db(
   conn: pog.Connection,
   email: String,
 ) -> Result(AdminUser, AdminError) {
-  let sql = "
+  let sql =
+    "
     SELECT id::text, clerk_user_id, email, role, is_active, created_at::text, updated_at::text
     FROM admin_users
     WHERE email = $1 AND is_active = true
@@ -177,12 +167,15 @@ fn list_admin_products_from_db(
     <> ";"
 
   let q = pog.query(full_sql) |> pog.returning(product_row_decoder())
-  let q_with_params = list.fold(params, q, fn(query, p) { pog.parameter(query, p) })
+  let q_with_params =
+    list.fold(params, q, fn(query, p) { pog.parameter(query, p) })
 
   use res <- result.try(
     pog.execute(q_with_params, conn)
     |> result.map_error(fn(err) {
-      DatabaseError("Error al listar productos (admin): " <> pog_error_to_string(err))
+      DatabaseError(
+        "Error al listar productos (admin): " <> pog_error_to_string(err),
+      )
     }),
   )
 
@@ -201,10 +194,11 @@ fn list_admin_products_from_db(
     list.fold(params, count_q, fn(query, p) { pog.parameter(query, p) })
 
   let total = case pog.execute(count_q_with_params, conn) {
-    Ok(c_res) -> case c_res.rows {
-      [t, ..] -> t
-      [] -> 0
-    }
+    Ok(c_res) ->
+      case c_res.rows {
+        [t, ..] -> t
+        [] -> 0
+      }
     Error(_) -> list.length(products_with_images)
   }
 
@@ -246,7 +240,8 @@ fn create_product_in_db(
   conn: pog.Connection,
   input: ProductInput,
 ) -> Result(Product, AdminError) {
-  let sql = "
+  let sql =
+    "
     INSERT INTO products (
       sku, name, slug, brand, short_description, description,
       price, currency, stock, low_stock_threshold,
@@ -282,7 +277,10 @@ fn create_product_in_db(
   case res {
     Ok(pog.Returned(rows: [prod, ..], ..)) -> Ok(Product(..prod, images: []))
     Ok(_) -> Error(DatabaseError("No se pudo crear el producto"))
-    Error(err) -> Error(DatabaseError("Error al insertar producto: " <> pog_error_to_string(err)))
+    Error(err) ->
+      Error(DatabaseError(
+        "Error al insertar producto: " <> pog_error_to_string(err),
+      ))
   }
 }
 
@@ -291,7 +289,8 @@ fn update_product_in_db(
   id: String,
   input: ProductInput,
 ) -> Result(Product, AdminError) {
-  let sql = "
+  let sql =
+    "
     UPDATE products SET
       sku = $1,
       name = $2,
@@ -340,7 +339,10 @@ fn update_product_in_db(
       Ok(Product(..prod, images: images))
     }
     Ok(_) -> Error(NotFound("Producto no encontrado"))
-    Error(err) -> Error(DatabaseError("Error al actualizar producto: " <> pog_error_to_string(err)))
+    Error(err) ->
+      Error(DatabaseError(
+        "Error al actualizar producto: " <> pog_error_to_string(err),
+      ))
   }
 }
 
@@ -348,7 +350,8 @@ fn archive_product_in_db(
   conn: pog.Connection,
   id: String,
 ) -> Result(Product, AdminError) {
-  let sql = "
+  let sql =
+    "
     UPDATE products SET
       status = 'archived',
       updated_at = NOW()
@@ -368,7 +371,10 @@ fn archive_product_in_db(
       Ok(Product(..prod, images: images))
     }
     Ok(_) -> Error(NotFound("Producto no encontrado"))
-    Error(err) -> Error(DatabaseError("Error al archivar producto: " <> pog_error_to_string(err)))
+    Error(err) ->
+      Error(DatabaseError(
+        "Error al archivar producto: " <> pog_error_to_string(err),
+      ))
   }
 }
 
@@ -384,7 +390,10 @@ fn delete_product_in_db(
     |> pog.execute(conn)
   {
     Ok(_) -> Ok(Nil)
-    Error(err) -> Error(DatabaseError("Error al eliminar producto: " <> pog_error_to_string(err)))
+    Error(err) ->
+      Error(DatabaseError(
+        "Error al eliminar producto: " <> pog_error_to_string(err),
+      ))
   }
 }
 
@@ -397,7 +406,9 @@ fn add_product_image_in_db(
   case input.is_primary {
     True -> {
       let _ =
-        pog.query("UPDATE product_images SET is_primary = false WHERE product_id = $1::uuid;")
+        pog.query(
+          "UPDATE product_images SET is_primary = false WHERE product_id = $1::uuid;",
+        )
         |> pog.parameter(pog.text(product_id))
         |> pog.execute(conn)
       Nil
@@ -405,7 +416,8 @@ fn add_product_image_in_db(
     False -> Nil
   }
 
-  let sql = "
+  let sql =
+    "
     INSERT INTO product_images (product_id, public_id, public_url, alt_text, sort_order, is_primary)
     VALUES ($1::uuid, $2, $3, $4, $5, $6)
     RETURNING id::text, product_id::text, public_id, public_url, alt_text, sort_order, is_primary, created_at::text;
@@ -425,7 +437,10 @@ fn add_product_image_in_db(
   case res {
     Ok(pog.Returned(rows: [img, ..], ..)) -> Ok(img)
     Ok(_) -> Error(DatabaseError("No se pudo agregar la imagen"))
-    Error(err) -> Error(DatabaseError("Error al insertar imagen: " <> pog_error_to_string(err)))
+    Error(err) ->
+      Error(DatabaseError(
+        "Error al insertar imagen: " <> pog_error_to_string(err),
+      ))
   }
 }
 
@@ -434,7 +449,8 @@ fn delete_product_image_in_db(
   product_id: String,
   image_id: String,
 ) -> Result(Nil, AdminError) {
-  let sql = "DELETE FROM product_images WHERE id = $1::uuid AND product_id = $2::uuid;"
+  let sql =
+    "DELETE FROM product_images WHERE id = $1::uuid AND product_id = $2::uuid;"
 
   use _ <- result.try(
     pog.query(sql)
@@ -447,7 +463,8 @@ fn delete_product_image_in_db(
   )
 
   // Auto-promote first remaining image if none is primary
-  let promote_sql = "
+  let promote_sql =
+    "
     UPDATE product_images
     SET is_primary = true
     WHERE id = (
@@ -475,18 +492,25 @@ fn set_primary_image_in_db(
   image_id: String,
 ) -> Result(Nil, AdminError) {
   let _ =
-    pog.query("UPDATE product_images SET is_primary = false WHERE product_id = $1::uuid;")
+    pog.query(
+      "UPDATE product_images SET is_primary = false WHERE product_id = $1::uuid;",
+    )
     |> pog.parameter(pog.text(product_id))
     |> pog.execute(conn)
 
   case
-    pog.query("UPDATE product_images SET is_primary = true WHERE id = $1::uuid AND product_id = $2::uuid;")
+    pog.query(
+      "UPDATE product_images SET is_primary = true WHERE id = $1::uuid AND product_id = $2::uuid;",
+    )
     |> pog.parameter(pog.text(image_id))
     |> pog.parameter(pog.text(product_id))
     |> pog.execute(conn)
   {
     Ok(_) -> Ok(Nil)
-    Error(err) -> Error(DatabaseError("Error al establecer imagen principal: " <> pog_error_to_string(err)))
+    Error(err) ->
+      Error(DatabaseError(
+        "Error al establecer imagen principal: " <> pog_error_to_string(err),
+      ))
   }
 }
 
@@ -498,7 +522,12 @@ fn build_admin_query_params(
 
   let #(clauses, params) = case filters.category_id {
     Some(cat_id) -> #(
-      [" AND category_id = $" <> int.to_string(list.length(params) + 1) <> "::uuid", ..clauses],
+      [
+        " AND category_id = $"
+          <> int.to_string(list.length(params) + 1)
+          <> "::uuid",
+        ..clauses
+      ],
       [pog.text(cat_id), ..params],
     )
     None -> #(clauses, params)
@@ -602,7 +631,8 @@ fn record_stock_movement_in_db(
       ))
     False -> {
       // 3. Update product stock
-      let update_sql = "
+      let update_sql =
+        "
         UPDATE products SET
           stock = stock + $1,
           updated_at = NOW()
@@ -617,7 +647,9 @@ fn record_stock_movement_in_db(
         |> pog.returning(product_row_decoder())
         |> pog.execute(conn)
         |> result.map_error(fn(err) {
-          DatabaseError("Error al actualizar stock: " <> pog_error_to_string(err))
+          DatabaseError(
+            "Error al actualizar stock: " <> pog_error_to_string(err),
+          )
         }),
       )
 
@@ -627,7 +659,8 @@ fn record_stock_movement_in_db(
       })
 
       // 4. Insert inventory movement record
-      let insert_sql = "
+      let insert_sql =
+        "
         INSERT INTO inventory_movements (
           product_id, delta, movement_type, reason, admin_user_id
         ) VALUES (
@@ -646,7 +679,9 @@ fn record_stock_movement_in_db(
         |> pog.returning(inventory_movement_decoder())
         |> pog.execute(conn)
         |> result.map_error(fn(err) {
-          DatabaseError("Error al registrar movimiento: " <> pog_error_to_string(err))
+          DatabaseError(
+            "Error al registrar movimiento: " <> pog_error_to_string(err),
+          )
         }),
       )
 
@@ -669,7 +704,8 @@ fn list_inventory_movements_from_db(
   let page_size = int.clamp(filters.page_size, 1, 100)
   let offset = { page - 1 } * page_size
 
-  let base_sql = "
+  let base_sql =
+    "
     SELECT id::text, product_id::text, delta, movement_type, reason, reference_type, reference_id::text, admin_user_id::text, created_at::text
     FROM inventory_movements
     WHERE 1=1
@@ -687,17 +723,23 @@ fn list_inventory_movements_from_db(
     <> ";"
 
   let q = pog.query(full_sql) |> pog.returning(inventory_movement_decoder())
-  let q_with_params = list.fold(params, q, fn(query, p) { pog.parameter(query, p) })
+  let q_with_params =
+    list.fold(params, q, fn(query, p) { pog.parameter(query, p) })
 
   use res <- result.try(
     pog.execute(q_with_params, conn)
     |> result.map_error(fn(err) {
-      DatabaseError("Error al listar movimientos de inventario: " <> pog_error_to_string(err))
+      DatabaseError(
+        "Error al listar movimientos de inventario: "
+        <> pog_error_to_string(err),
+      )
     }),
   )
 
   let count_sql =
-    "SELECT count(*)::int FROM inventory_movements WHERE 1=1" <> where_clauses <> ";"
+    "SELECT count(*)::int FROM inventory_movements WHERE 1=1"
+    <> where_clauses
+    <> ";"
   let count_q =
     pog.query(count_sql)
     |> pog.returning(decode.at([0], decode.int))
@@ -705,10 +747,11 @@ fn list_inventory_movements_from_db(
     list.fold(params, count_q, fn(query, p) { pog.parameter(query, p) })
 
   let total = case pog.execute(count_q_with_params, conn) {
-    Ok(c_res) -> case c_res.rows {
-      [t, ..] -> t
-      [] -> 0
-    }
+    Ok(c_res) ->
+      case c_res.rows {
+        [t, ..] -> t
+        [] -> 0
+      }
     Error(_) -> list.length(res.rows)
   }
 
@@ -726,7 +769,12 @@ fn build_inventory_query_params(
 
   let #(clauses, params) = case filters.product_id {
     Some(pid) -> #(
-      [" AND product_id = $" <> int.to_string(list.length(params) + 1) <> "::uuid", ..clauses],
+      [
+        " AND product_id = $"
+          <> int.to_string(list.length(params) + 1)
+          <> "::uuid",
+        ..clauses
+      ],
       [pog.text(pid), ..params],
     )
     None -> #(clauses, params)
@@ -734,7 +782,10 @@ fn build_inventory_query_params(
 
   let #(clauses, params) = case filters.movement_type {
     Some(mt) -> #(
-      [" AND movement_type = $" <> int.to_string(list.length(params) + 1), ..clauses],
+      [
+        " AND movement_type = $" <> int.to_string(list.length(params) + 1),
+        ..clauses
+      ],
       [pog.text(movement_type_to_string(mt)), ..params],
     )
     None -> #(clauses, params)

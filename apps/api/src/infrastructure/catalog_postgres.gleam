@@ -1,7 +1,7 @@
 import domain/catalog.{
-  type CatalogError, type CatalogRepository, type Paginated,
-  type ProductFilters, type StoreConfig, CatalogRepository, CategoryNotFound,
-  DatabaseError, Paginated, Pagination, ProductFilters, ProductNotFound,
+  type CatalogError, type CatalogRepository, type Paginated, type ProductFilters,
+  type StoreConfig, CatalogRepository, CategoryNotFound, DatabaseError,
+  Paginated, Pagination, ProductFilters, ProductNotFound,
 }
 import domain/category.{type Category, Category}
 import domain/product.{
@@ -254,7 +254,8 @@ fn list_products_from_db(
     <> ";"
 
   let q = pog.query(full_sql) |> pog.returning(product_row_decoder())
-  let q_with_params = list.fold(params, q, fn(query, p) { pog.parameter(query, p) })
+  let q_with_params =
+    list.fold(params, q, fn(query, p) { pog.parameter(query, p) })
 
   use res <- result.try(
     pog.execute(q_with_params, conn)
@@ -272,7 +273,9 @@ fn list_products_from_db(
 
   // Total count
   let count_sql =
-    "SELECT count(*)::int FROM products WHERE status = 'published'" <> where_clauses <> ";"
+    "SELECT count(*)::int FROM products WHERE status = 'published'"
+    <> where_clauses
+    <> ";"
   let count_q =
     pog.query(count_sql)
     |> pog.returning(decode.at([0], decode.int))
@@ -280,10 +283,11 @@ fn list_products_from_db(
     list.fold(params, count_q, fn(query, p) { pog.parameter(query, p) })
 
   let total = case pog.execute(count_q_with_params, conn) {
-    Ok(c_res) -> case c_res.rows {
-      [t, ..] -> t
-      [] -> 0
-    }
+    Ok(c_res) ->
+      case c_res.rows {
+        [t, ..] -> t
+        [] -> 0
+      }
     Error(_) -> list.length(products_with_images)
   }
 
@@ -312,7 +316,10 @@ fn build_product_query_params(
 
   let #(clauses, params) = case cat_id_opt {
     Some(cat_id) -> #(
-      [" AND category_id = $" <> int.to_string(list.length(params) + 1), ..clauses],
+      [
+        " AND category_id = $" <> int.to_string(list.length(params) + 1),
+        ..clauses
+      ],
       [pog.text(cat_id), ..params],
     )
     None -> #(clauses, params)
@@ -320,7 +327,10 @@ fn build_product_query_params(
 
   let #(clauses, params) = case filters.featured {
     Some(feat) -> #(
-      [" AND is_featured = $" <> int.to_string(list.length(params) + 1), ..clauses],
+      [
+        " AND is_featured = $" <> int.to_string(list.length(params) + 1),
+        ..clauses
+      ],
       [pog.bool(feat), ..params],
     )
     None -> #(clauses, params)

@@ -35,7 +35,6 @@ fn route(
   repo: CatalogRepository,
   admin_repo: AdminRepository,
 ) -> Response {
-
   case wisp.path_segments(req) {
     ["health"] -> handle_health()
     ["api", "v1", "health"] -> handle_health()
@@ -114,8 +113,10 @@ fn route(
     ["api", "v1", "admin", "products", id] -> {
       case req.method {
         http.Get -> admin_handlers.handle_admin_get_product(req, id, admin_repo)
-        http.Patch -> admin_handlers.handle_admin_update_product(req, id, admin_repo)
-        http.Delete -> admin_handlers.handle_admin_delete_product(req, id, admin_repo)
+        http.Patch ->
+          admin_handlers.handle_admin_update_product(req, id, admin_repo)
+        http.Delete ->
+          admin_handlers.handle_admin_delete_product(req, id, admin_repo)
         _ -> wisp.method_not_allowed([http.Get, http.Patch, http.Delete])
       }
     }
@@ -132,7 +133,12 @@ fn route(
 
     ["api", "v1", "admin", "products", id, "images", image_id, "primary"] -> {
       use <- wisp.require_method(req, http.Patch)
-      admin_handlers.handle_admin_set_primary_image(req, id, image_id, admin_repo)
+      admin_handlers.handle_admin_set_primary_image(
+        req,
+        id,
+        image_id,
+        admin_repo,
+      )
     }
 
     ["api", "v1", "admin", "inventory", "adjust"] -> {
@@ -149,8 +155,6 @@ fn route(
       use <- wisp.require_method(req, http.Get)
       admin_handlers.handle_admin_product_movements(req, id, admin_repo)
     }
-
-
 
     _ ->
       json.object([
@@ -249,6 +253,9 @@ fn add_cors_headers(res: Response) -> Response {
     "access-control-allow-headers",
     "Content-Type, Authorization",
   )
+  |> wisp.set_header("x-content-type-options", "nosniff")
+  |> wisp.set_header("x-frame-options", "DENY")
+  |> wisp.set_header("referrer-policy", "strict-origin-when-cross-origin")
 }
 
 fn handle_cors_preflight() -> Response {
