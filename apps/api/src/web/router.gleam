@@ -21,6 +21,7 @@ pub fn handle_request(
 ) -> Response {
   use <- wisp.rescue_crashes
   use req <- wisp.handle_head(req)
+  use <- wisp.log_request(req)
 
   case req.method {
     http.Options -> handle_cors_preflight()

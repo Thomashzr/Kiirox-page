@@ -3,6 +3,7 @@
 import { neon } from '@neondatabase/serverless';
 import { revalidatePath } from 'next/cache';
 import { verifyAdminAccess } from '../../../lib/admin-auth';
+import { checkRateLimit } from '../../../lib/rate-limit';
 import { InventoryMovementWithProduct, MovementType, PaginatedMovements } from '../../../types';
 
 function getDb() {
@@ -188,6 +189,11 @@ export async function recordStockAdjustmentAction(input: {
 }): Promise<{ success: boolean; new_stock: number }> {
   const auth = await verifyAdminAccess();
   if (!auth.authorized) throw new Error('No autorizado');
+
+  const rl = checkRateLimit(`adjust:${auth.admin.id}`, { limit: 30, windowMs: 60000 });
+  if (!rl.success) {
+    throw new Error(`Demasiados ajustes de stock en poco tiempo. Espera ${rl.reset} segundos.`);
+  }
 
   if (input.delta === 0) {
     throw new Error('El ajuste debe tener una variación distinta de cero.');

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { v2 as cloudinary } from 'cloudinary';
 import { verifyAdminAccess } from '../../../../../lib/admin-auth';
+import { checkRateLimit } from '../../../../../lib/rate-limit';
 
 export const runtime = 'nodejs';
 
@@ -28,6 +29,18 @@ export async function POST(req: NextRequest) {
     return NextResponse.json(
       { error: 'UNAUTHORIZED', message: 'No tienes permisos de administrador' },
       { status: 401 }
+    );
+  }
+
+  // 1b. Rate limiting check (max 30 uploads per minute per admin)
+  const rl = checkRateLimit(`upload:${authResult.admin.id}`, { limit: 30, windowMs: 60000 });
+  if (!rl.success) {
+    return NextResponse.json(
+      {
+        error: 'RATE_LIMIT_EXCEEDED',
+        message: `Límite de subidas alcanzado. Intenta nuevamente en ${rl.reset} segundos.`,
+      },
+      { status: 429, headers: { 'Retry-After': String(rl.reset) } }
     );
   }
 
