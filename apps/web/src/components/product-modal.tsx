@@ -66,47 +66,47 @@ export function ProductModal({
       >
         {/* Header / Close button */}
         <div className="flex items-center justify-between border-b border-zinc-200 dark:border-zinc-800 px-6 py-4">
-          <div className="flex items-center gap-2">
-            <span className="text-xs font-mono uppercase tracking-wider text-zinc-500">
+          <div className="flex items-center gap-3">
+            <span className="text-xs font-mono tabular-nums uppercase tracking-wider text-zinc-600 dark:text-zinc-400">
               SKU: {product.sku}
             </span>
             {product.is_featured && (
-              <span className="text-[10px] font-mono uppercase px-2 py-0.5 bg-black text-white dark:bg-white dark:text-black font-semibold">
+              <span className="text-[10px] font-sans font-bold uppercase px-2 py-0.5 bg-black text-white dark:bg-white dark:text-black tracking-wider">
                 DESTACADO
               </span>
             )}
           </div>
           <button
             onClick={onClose}
-            className="p-1.5 text-zinc-500 hover:text-black dark:hover:text-white transition-colors border border-transparent hover:border-zinc-200 dark:hover:border-zinc-800"
+            className="p-1.5 text-zinc-500 hover:text-black dark:hover:text-white transition-colors border border-transparent hover:border-zinc-200 dark:hover:border-zinc-800 cursor-pointer"
             aria-label="Cerrar modal"
           >
             <X size={18} weight="bold" />
           </button>
         </div>
 
-        {/* Modal Content - Scrollable if needed */}
+        {/* Modal Content - Scrollable */}
         <div className="overflow-y-auto p-6 grid grid-cols-1 md:grid-cols-2 gap-8">
           {/* Image */}
           <div className="aspect-square bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 flex items-center justify-center overflow-hidden">
             <img
               src={primaryImage}
               alt={product.name}
-              className="w-full h-full object-cover grayscale contrast-125 hover:grayscale-0 transition-all duration-300"
+              className="w-full h-full object-cover"
             />
           </div>
 
           {/* Details */}
           <div className="flex flex-col justify-between">
             <div>
-              <div className="text-xs font-mono uppercase tracking-wider text-zinc-500 mb-1">
+              <div className="text-xs font-sans font-medium uppercase tracking-wider text-zinc-600 dark:text-zinc-400 mb-1">
                 {product.brand || 'KIIROX'} &middot; {product.category_name}
               </div>
               <h2 className="text-2xl font-black font-sans uppercase tracking-tight text-black dark:text-white mb-3">
                 {product.name}
               </h2>
 
-              <div className="text-2xl font-mono font-bold text-black dark:text-white mb-4">
+              <div className="text-2xl font-mono tabular-nums font-bold text-black dark:text-white mb-4">
                 {formattedPrice}
               </div>
 
@@ -114,28 +114,28 @@ export function ProductModal({
               <div className="mb-6 flex items-center gap-2">
                 {isAvailable ? (
                   isLowStock ? (
-                    <span className="inline-flex items-center gap-1.5 text-xs font-mono text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/40 px-2.5 py-1 border border-amber-200 dark:border-amber-800">
+                    <span className="inline-flex items-center gap-1.5 text-xs font-sans font-medium text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/40 px-2.5 py-1 border border-amber-300 dark:border-amber-800">
                       <WarningCircle size={14} weight="bold" />
                       <span>Últimas {product.stock} unidades</span>
                     </span>
                   ) : (
-                    <span className="inline-flex items-center gap-1.5 text-xs font-mono text-zinc-700 dark:text-zinc-300 bg-zinc-100 dark:bg-zinc-900 px-2.5 py-1 border border-zinc-300 dark:border-zinc-700">
+                    <span className="inline-flex items-center gap-1.5 text-xs font-sans font-medium text-emerald-800 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/40 px-2.5 py-1 border border-emerald-300 dark:border-emerald-800">
                       <CheckCircle size={14} weight="bold" />
                       <span>En Stock ({product.stock} disponibles)</span>
                     </span>
                   )
                 ) : (
-                  <span className="inline-flex items-center gap-1.5 text-xs font-mono text-zinc-500 bg-zinc-100 dark:bg-zinc-900 px-2.5 py-1 border border-zinc-300 dark:border-zinc-700">
+                  <span className="inline-flex items-center gap-1.5 text-xs font-sans font-medium text-zinc-500 bg-zinc-100 dark:bg-zinc-900 px-2.5 py-1 border border-zinc-300 dark:border-zinc-700">
                     <span>Agotado temporalmente</span>
                   </span>
                 )}
               </div>
 
               {/* Description */}
-              <div className="text-sm text-zinc-600 dark:text-zinc-400 leading-relaxed mb-6">
+              <div className="text-sm text-zinc-700 dark:text-zinc-300 leading-relaxed mb-6">
                 <p className="mb-2">{product.short_description}</p>
                 {product.description && (
-                  <p className="text-xs text-zinc-500 border-t border-zinc-100 dark:border-zinc-900 pt-2">
+                  <p className="text-xs text-zinc-600 dark:text-zinc-400 border-t border-zinc-200 dark:border-zinc-800 pt-2.5 leading-relaxed">
                     {product.description}
                   </p>
                 )}
@@ -152,18 +152,18 @@ export function ProductModal({
                       <button
                         onClick={() => setQuantity((q) => Math.max(1, q - 1))}
                         disabled={quantity <= 1}
-                        className="p-2 text-zinc-600 dark:text-zinc-400 hover:text-black dark:hover:text-white disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                        className="p-2 text-zinc-600 dark:text-zinc-400 hover:text-black dark:hover:text-white disabled:opacity-30 disabled:cursor-not-allowed transition-colors cursor-pointer"
                         aria-label="Disminuir cantidad"
                       >
                         <Minus size={14} weight="bold" />
                       </button>
-                      <span className="w-10 text-center text-xs font-mono font-bold">
+                      <span className="w-10 text-center text-xs font-mono tabular-nums font-bold">
                         {quantity}
                       </span>
                       <button
                         onClick={() => setQuantity((q) => Math.min(product.stock, q + 1))}
                         disabled={quantity >= product.stock}
-                        className="p-2 text-zinc-600 dark:text-zinc-400 hover:text-black dark:hover:text-white disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                        className="p-2 text-zinc-600 dark:text-zinc-400 hover:text-black dark:hover:text-white disabled:opacity-30 disabled:cursor-not-allowed transition-colors cursor-pointer"
                         aria-label="Aumentar cantidad"
                       >
                         <Plus size={14} weight="bold" />
@@ -175,7 +175,7 @@ export function ProductModal({
                         addItem(product, quantity);
                         onClose();
                       }}
-                      className="flex-1 inline-flex items-center justify-center gap-2 px-6 py-3 bg-black dark:bg-white text-white dark:text-black text-xs font-mono font-bold tracking-wider uppercase hover:bg-zinc-800 dark:hover:bg-zinc-200 transition-colors shadow-md"
+                      className="flex-1 inline-flex items-center justify-center gap-2 px-6 py-3 bg-black dark:bg-white text-white dark:text-black text-xs font-sans font-bold tracking-wider uppercase hover:bg-zinc-800 dark:hover:bg-zinc-200 transition-colors shadow-md cursor-pointer"
                     >
                       <ShoppingBag size={16} weight="bold" />
                       <span>Agregar al carrito</span>
@@ -187,7 +187,7 @@ export function ProductModal({
                     href={`https://wa.me/${whatsappNumber.replace(/[^0-9]/g, '')}?text=${whatsappMessage}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 border border-zinc-300 dark:border-zinc-700 hover:border-black dark:hover:border-white text-zinc-700 dark:text-zinc-300 hover:text-black dark:hover:text-white text-xs font-mono tracking-wider uppercase transition-colors"
+                    className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 border border-zinc-300 dark:border-zinc-700 hover:border-black dark:hover:border-white text-zinc-800 dark:text-zinc-200 hover:text-black dark:hover:text-white text-xs font-sans font-semibold tracking-wider uppercase transition-colors cursor-pointer"
                   >
                     <WhatsappLogo size={16} weight="bold" />
                     <span>Consultar directo por WhatsApp</span>
@@ -197,7 +197,7 @@ export function ProductModal({
                 <div className="flex flex-col gap-2">
                   <button
                     disabled
-                    className="w-full py-3 bg-zinc-100 dark:bg-zinc-900 text-zinc-400 dark:text-zinc-600 text-xs font-mono uppercase tracking-wider cursor-not-allowed border border-zinc-200 dark:border-zinc-800"
+                    className="w-full py-3 bg-zinc-100 dark:bg-zinc-900 text-zinc-500 text-xs font-sans uppercase tracking-wider cursor-not-allowed border border-zinc-200 dark:border-zinc-800"
                   >
                     Sin stock disponible
                   </button>
@@ -205,7 +205,7 @@ export function ProductModal({
                     href={`https://wa.me/${whatsappNumber.replace(/[^0-9]/g, '')}?text=${whatsappMessage}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 border border-zinc-300 dark:border-zinc-700 hover:border-black dark:hover:border-white text-xs font-mono tracking-wider uppercase transition-colors"
+                    className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 border border-zinc-300 dark:border-zinc-700 hover:border-black dark:hover:border-white text-zinc-800 dark:text-zinc-200 hover:text-black dark:hover:text-white text-xs font-sans font-semibold tracking-wider uppercase transition-colors cursor-pointer"
                   >
                     <WhatsappLogo size={16} weight="bold" />
                     <span>Consultar reposición vía WhatsApp</span>

@@ -96,11 +96,11 @@ export function CartDrawer({
           <div className="flex items-center gap-3">
             <h2
               id="cart-drawer-title"
-              className="text-base font-mono uppercase tracking-wider font-bold"
+              className="text-base font-sans uppercase tracking-tight font-black"
             >
               Tu Pedido
             </h2>
-            <span className="text-xs font-mono px-2 py-0.5 bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300 border border-zinc-200 dark:border-zinc-700">
+            <span className="text-xs font-mono tabular-nums px-2 py-0.5 bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 border border-zinc-200 dark:border-zinc-700">
               {totalItems} {totalItems === 1 ? 'item' : 'items'}
             </span>
           </div>
@@ -109,7 +109,7 @@ export function CartDrawer({
             {items.length > 0 && (
               <button
                 onClick={clearCart}
-                className="text-[11px] font-mono uppercase text-zinc-500 hover:text-red-500 transition-colors mr-2"
+                className="text-[11px] font-sans uppercase font-medium text-zinc-500 hover:text-red-500 transition-colors mr-2 cursor-pointer"
                 title="Vaciar carrito"
               >
                 Vaciar
@@ -117,7 +117,7 @@ export function CartDrawer({
             )}
             <button
               onClick={closeDrawer}
-              className="p-1.5 text-zinc-500 hover:text-black dark:hover:text-white border border-transparent hover:border-zinc-200 dark:hover:border-zinc-800 transition-colors"
+              className="p-1.5 text-zinc-500 hover:text-black dark:hover:text-white border border-transparent hover:border-zinc-200 dark:border-zinc-800 transition-colors cursor-pointer"
               aria-label="Cerrar carrito"
             >
               <X size={18} weight="bold" />
@@ -128,13 +128,13 @@ export function CartDrawer({
         {/* Drawer Body */}
         {items.length === 0 ? (
           <div className="flex-1 flex flex-col items-center justify-center p-8 text-center">
-            <div className="w-16 h-16 rounded-full bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 flex items-center justify-center mb-4 text-zinc-400">
+            <div className="w-16 h-16 bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 flex items-center justify-center mb-4 text-zinc-400">
               <ShoppingBag size={28} weight="light" />
             </div>
             <h3 className="text-base font-sans font-bold uppercase tracking-tight mb-2">
               El carrito está vacío
             </h3>
-            <p className="text-xs text-zinc-500 dark:text-zinc-400 max-w-xs mb-6 font-mono leading-relaxed">
+            <p className="text-xs text-zinc-600 dark:text-zinc-400 max-w-xs mb-6 font-sans leading-relaxed">
               Explora nuestro catálogo para seleccionar suplementos de alto rendimiento.
             </p>
             <button
@@ -145,7 +145,7 @@ export function CartDrawer({
                   catalogEl.scrollIntoView({ behavior: 'smooth' });
                 }
               }}
-              className="inline-flex items-center gap-2 px-5 py-2.5 bg-black dark:bg-white text-white dark:text-black text-xs font-mono uppercase font-bold tracking-wider hover:bg-zinc-800 dark:hover:bg-zinc-200 transition-colors"
+              className="inline-flex items-center gap-2 px-5 py-2.5 bg-black dark:bg-white text-white dark:text-black text-xs font-sans uppercase font-bold tracking-wider hover:bg-zinc-800 dark:hover:bg-zinc-200 transition-colors cursor-pointer"
             >
               <span>Ver catálogo</span>
               <ArrowRight size={14} weight="bold" />
@@ -165,7 +165,7 @@ export function CartDrawer({
                       <img
                         src={item.image_url}
                         alt={item.name}
-                        className="w-full h-full object-cover grayscale contrast-125"
+                        className="w-full h-full object-cover"
                       />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center text-zinc-400 text-xs font-mono">
@@ -181,14 +181,14 @@ export function CartDrawer({
                         <h4 className="text-xs font-bold uppercase tracking-tight text-black dark:text-white line-clamp-1">
                           {item.name}
                         </h4>
-                        <p className="text-[10px] font-mono text-zinc-500">
+                        <p className="text-[10px] font-mono tabular-nums text-zinc-500">
                           SKU: {item.sku}
                         </p>
                       </div>
 
                       <button
                         onClick={() => removeItem(item.product_id)}
-                        className="text-zinc-400 hover:text-red-500 transition-colors p-1"
+                        className="text-zinc-400 hover:text-red-500 transition-colors p-1 cursor-pointer"
                         aria-label={`Eliminar ${item.name}`}
                       >
                         <Trash size={14} weight="bold" />
@@ -200,18 +200,18 @@ export function CartDrawer({
                       <div className="inline-flex items-center border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900/50">
                         <button
                           onClick={() => updateQuantity(item.product_id, item.quantity - 1)}
-                          className="p-1 text-zinc-600 dark:text-zinc-400 hover:text-black dark:hover:text-white hover:bg-zinc-200 dark:hover:bg-zinc-800 transition-colors"
+                          className="p-1 text-zinc-600 dark:text-zinc-400 hover:text-black dark:hover:text-white hover:bg-zinc-200 dark:hover:bg-zinc-800 transition-colors cursor-pointer"
                           aria-label="Disminuir cantidad"
                         >
                           <Minus size={12} weight="bold" />
                         </button>
-                        <span className="w-8 text-center text-xs font-mono font-bold">
+                        <span className="w-8 text-center text-xs font-mono tabular-nums font-bold">
                           {item.quantity}
                         </span>
                         <button
                           onClick={() => updateQuantity(item.product_id, item.quantity + 1)}
                           disabled={isMaxStock}
-                          className="p-1 text-zinc-600 dark:text-zinc-400 hover:text-black dark:hover:text-white hover:bg-zinc-200 dark:hover:bg-zinc-800 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                          className="p-1 text-zinc-600 dark:text-zinc-400 hover:text-black dark:hover:text-white hover:bg-zinc-200 dark:hover:bg-zinc-800 disabled:opacity-30 disabled:cursor-not-allowed transition-colors cursor-pointer"
                           aria-label="Aumentar cantidad"
                         >
                           <Plus size={12} weight="bold" />
@@ -220,11 +220,11 @@ export function CartDrawer({
 
                       {/* Subtotal */}
                       <div className="text-right">
-                        <div className="text-xs font-mono font-bold">
+                        <div className="text-xs font-mono tabular-nums font-bold">
                           {formatCurrency(itemTotal, item.currency)}
                         </div>
                         {item.quantity > 1 && (
-                          <div className="text-[10px] font-mono text-zinc-500">
+                          <div className="text-[10px] font-mono tabular-nums text-zinc-500">
                             {formatCurrency(item.price, item.currency)} c/u
                           </div>
                         )}
@@ -232,7 +232,7 @@ export function CartDrawer({
                     </div>
 
                     {isMaxStock && (
-                      <p className="text-[10px] font-mono text-amber-600 dark:text-amber-400 mt-1">
+                      <p className="text-[10px] font-sans font-medium text-amber-700 dark:text-amber-400 mt-1">
                         Stock máximo alcanzado ({item.stock} un.)
                       </p>
                     )}
@@ -249,14 +249,14 @@ export function CartDrawer({
             {/* Total Row */}
             <div className="flex items-baseline justify-between">
               <div>
-                <span className="text-xs font-mono uppercase tracking-wider text-zinc-500">
+                <span className="text-xs font-sans uppercase font-medium tracking-wider text-zinc-600 dark:text-zinc-400">
                   Total Estimado
                 </span>
-                <p className="text-[10px] text-zinc-400 dark:text-zinc-600 font-mono">
+                <p className="text-[10px] text-zinc-500 font-sans">
                   Sujeto a confirmación final
                 </p>
               </div>
-              <div className="text-xl font-mono font-black tracking-tight text-black dark:text-white">
+              <div className="text-xl font-mono tabular-nums font-black tracking-tight text-black dark:text-white">
                 {formattedTotalPrice}
               </div>
             </div>
@@ -266,7 +266,7 @@ export function CartDrawer({
               href={whatsappUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="w-full inline-flex items-center justify-center gap-2 px-6 py-3.5 bg-black dark:bg-white text-white dark:text-black text-xs font-mono font-bold uppercase tracking-wider hover:bg-zinc-800 dark:hover:bg-zinc-200 transition-colors shadow-lg"
+              className="w-full inline-flex items-center justify-center gap-2 px-6 py-3.5 bg-black dark:bg-white text-white dark:text-black text-xs font-sans font-bold uppercase tracking-wider hover:bg-zinc-800 dark:hover:bg-zinc-200 transition-colors shadow-lg cursor-pointer"
             >
               <WhatsappLogo size={18} weight="bold" />
               <span>Pedir por WhatsApp</span>
@@ -276,7 +276,7 @@ export function CartDrawer({
             <div className="grid grid-cols-2 gap-2 pt-1">
               <button
                 onClick={handleCopy}
-                className="inline-flex items-center justify-center gap-1.5 px-3 py-2 text-[11px] font-mono uppercase tracking-wider border border-zinc-300 dark:border-zinc-700 hover:border-black dark:hover:border-white text-zinc-700 dark:text-zinc-300 hover:text-black dark:hover:text-white transition-colors"
+                className="inline-flex items-center justify-center gap-1.5 px-3 py-2 text-[11px] font-sans font-semibold uppercase tracking-wider border border-zinc-300 dark:border-zinc-700 hover:border-black dark:hover:border-white text-zinc-800 dark:text-zinc-200 hover:text-black dark:hover:text-white transition-colors cursor-pointer"
                 title="Copiar texto del pedido para pegarlo en cualquier chat"
               >
                 {copied ? (
@@ -294,7 +294,7 @@ export function CartDrawer({
 
               <button
                 onClick={handleDownload}
-                className="inline-flex items-center justify-center gap-1.5 px-3 py-2 text-[11px] font-mono uppercase tracking-wider border border-zinc-300 dark:border-zinc-700 hover:border-black dark:hover:border-white text-zinc-700 dark:text-zinc-300 hover:text-black dark:hover:text-white transition-colors"
+                className="inline-flex items-center justify-center gap-1.5 px-3 py-2 text-[11px] font-sans font-semibold uppercase tracking-wider border border-zinc-300 dark:border-zinc-700 hover:border-black dark:hover:border-white text-zinc-800 dark:text-zinc-200 hover:text-black dark:hover:text-white transition-colors cursor-pointer"
                 title="Descargar comprobante en archivo de texto plano"
               >
                 <DownloadSimple size={14} weight="bold" />

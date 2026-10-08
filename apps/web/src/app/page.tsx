@@ -19,10 +19,10 @@ async function CatalogAsync() {
 function CatalogSkeleton() {
   return (
     <section className="py-16 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto w-full animate-pulse">
-      <div className="h-8 w-48 bg-zinc-200 dark:bg-zinc-800 rounded-lg mb-8" />
+      <div className="h-8 w-48 bg-zinc-200 dark:bg-zinc-800 mb-8" />
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
         {[...Array(8)].map((_, i) => (
-          <div key={i} className="h-80 bg-zinc-100 dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800" />
+          <div key={i} className="h-80 bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800" />
         ))}
       </div>
     </section>

@@ -38,11 +38,6 @@ export function BrandLogo({ className = '', size = 'md' }: BrandLogoProps) {
           </span>
         </div>
       </div>
-      
-      {/* Indicador sutil de placeholder de logo para facilitar el reemplazo */}
-      <span className="hidden sm:inline-block text-[10px] font-mono px-1.5 py-0.5 border border-dashed border-zinc-300 dark:border-zinc-700 text-zinc-400 dark:text-zinc-500 uppercase rounded">
-        LOGO_SLOT
-      </span>
     </div>
   );
 }

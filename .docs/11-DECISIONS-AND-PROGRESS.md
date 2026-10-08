@@ -176,7 +176,6 @@
   - Autenticación: Clerk Auth Engine con JWT.
 - **Limpieza de Procesos**:
   - Cancelación controlada del proceso local continuo `npm run web:dev` para liberar recursos del sistema.
-
 ### ✅ Fase 9 — Hardening, Concurrencia de Stock, Rate Limiting y Backups
 - **Pruebas de Concurrencia sobre Stock (`infra/test_stock_concurrency.mjs`)**:
   - Suite de estrés ejecutando 15 peticiones simultáneas sobre un producto con stock inicial de 5 unidades.
@@ -193,6 +192,34 @@
   - Respaldo continuo con Point-In-Time Recovery (PITR) a nivel de almacenamiento WAL en São Paulo y capacidad de branch snapshots instantáneos.
 - **Hardening de Cabeceras HTTP**:
   - Configuración activa en producción de `Content-Security-Policy` (CSP), `Strict-Transport-Security` (HSTS), `X-Content-Type-Options: nosniff`, `X-Frame-Options: DENY` y `Referrer-Policy`.
+
+### ✅ Fase 10 — Auditoría de Diseño Frontend & Eliminación de AI Slop (Skill Impeccable)
+- **Instalación de la Skill Impeccable**:
+  - Instalada la skill `impeccable` (`pbakaus/impeccable` v4.5.0) en `.agents/skills/impeccable` con suite de directrices `reference/craft-floor.md`, `audit.md`, `polish.md`, etc.
+  - Ejecución del inicializador de contexto de la skill y verificación del detector mecánico (`impeccable detect`).
+- **Hallazgos Críticos de "AI Slop" y Antipatrones Detectados**:
+  - **Kickers / Eyebrow labels sobre encabezados (Baneados por Impeccable)**: Presentes en `Hero` (`KIIROX ATHLETICS · 2026`) y en `CatalogSection` (`INVENTARIO DISPONIBLE · X REFERENCIAS`). Los títulos deben sostenerse con su propio peso tipográfico sin etiquetas redundantes.
+  - **Monospace como "Disfraz" (Monospace Costume)**: Botones interactivos (`font-mono`), pestañas de categorías y enlaces de navegación estaban forzados en monoespaciado en lugar de usar tipografía sans-serif deportiva limpia y jerárquica. El monoespaciado se reservó exclusivamente para datos medibles (SKUs, números de lote, métricas de nutrientes y precios).
+  - **Contraste Deficiente en Modo Oscuro (WCAG AA)**: Textos secundarios en `text-zinc-500` sobre fondos negros no alcanzaban el ratio mínimo de 4.5:1. Se ajustaron a escalas legibles (`text-zinc-600 dark:text-zinc-400` y `text-zinc-700 dark:text-zinc-300`).
+  - **Filtro Grayscale Artificial en Productos**: Las fotos de catálogo se mostraban en escala de grises forzada (`grayscale contrast-125`) que deslucía el packaging real de marcas de alta gama (Maurten, SiS, Skratch). Se eliminó en favor de renderizado de imagen original nítido con micro-interacción de zoom sutil al hover.
+  - **Superficies del Navegador Desatendidas**: Falta de scrollbars tematizados, color de caret, selección temática y cifras tabulares (`tabular-nums`) para precios y contadores.
+  - **Remanente de Desarrollo**: Etiqueta visual `LOGO_SLOT` visible en el componente de logo en la barra de navegación pública.
+  - **Esqueleto Genérico AI**: `CatalogSkeleton` utilizaba `rounded-2xl` genérico en contradicción con la estética brutalista y limpia del proyecto.
+- **Refactorización y Mejoras Implementadas**:
+  - `apps/web/src/app/globals.css`: Agregadas reglas de `caret-color: currentColor`, scrollbars minimalistas personalizados (`::-webkit-scrollbar`), estilo de selección de alto contraste, `.tabular-nums` con `font-feature-settings: "tnum" 1` y anillos de enfoque accesibles (`:focus-visible`).
+  - `apps/web/src/components/brand-logo.tsx`: Eliminado el badge `LOGO_SLOT`, consolidando el isotipo geométrico y el bloque de marca en navegación.
+  - `apps/web/src/components/hero.tsx`: Eliminado el kicker prohibido. Encabezado principal ampliado con fuerza editorial. Botones de acción principales actualizados a tipografía sans-serif táctil. Panel derecho transformado en una matriz técnica de rendimiento atlético (ratios de carbohidratos 1:0.8, encapsulación por hidrogel, electrolitos y despacho 24hs) con alto contraste.
+  - `apps/web/src/components/catalog-section.tsx`: Eliminado el kicker superior. Pestañas de categorías actualizadas a controles atléticos sans-serif. Eliminado el filtro grayscale en las tarjetas de producto. Precios formateados con `tabular-nums font-mono`. Botón "Agregar" elevado con jerarquía táctil.
+  - `apps/web/src/components/product-modal.tsx`: Rediseñado como dossier de especificación técnica atlética. Imagen nítida sin filtros forzados. Badges de stock accesibles en modo claro y oscuro. Selectores de cantidad y botones de carrito y WhatsApp con tipografía clara y contrastada.
+  - `apps/web/src/components/cart-drawer.tsx`: Eliminado el grayscale de miniaturas. Precios, cantidades y totales renderizados con cifras tabulares. Botones de compra y utilidades (copiar/descargar .txt) con tipografía optimizada.
+  - `apps/web/src/components/navbar.tsx`: Enlaces de navegación y botón de login elevados a tipografía sans-serif con peso adecuado; contador del carrito con cifras tabulares.
+  - `apps/web/src/components/footer.tsx`: Contrastes de párrafos y enlaces ajustados para cumplimiento WCAG AA.
+  - `apps/web/src/app/page.tsx`: Corregido `CatalogSkeleton` eliminando esquinas `rounded-2xl`.
+- **Verificación y Despliegue**:
+  - Detector Impeccable ejecutado: 0 infracciones detectadas (`[]`).
+  - Lint de ESLint: 0 errores (`npm --prefix apps/web run lint`).
+  - Compilación de producción con Turbopack: exitosa en 3.6s (`npm --prefix apps/web run build`).
+  - Desplegado en producción en Vercel: `https://kiirox.vercel.app` (`▲ Ready in 37s`, HTTP 200 OK verificado).
 
 ---
 
@@ -231,7 +258,7 @@
 - **Justificación:** Brinda un espacio visual limpio y ergonómico para formularios extensos (datos generales, precios, inventario, descripciones enriquecidas, etiquetas y galería múltiple de fotos), garantizando URLs compartibles, navegación estándar y fácil inspección.
 
 ### ADR-09: Estrategia Híbrida de Eliminación (Borrado Lógico Preferente / Archivar + Eliminación Permanente Protegida)
-- **Decisión:** La acción de eliminación por defecto realiza un borrado lógico marcando el producto como `archived` (ocultándolo de la tienda pública pero preservando su historial de ventas e inventario). Se ofrece una acción explícita de "Eliminación Permanente" con confirmación de advertencia que borra la fila en SQL (en cascada con sus fotos) y remueve el asset de Cloudinary.
+- **Decisión:** La acción de eliminación por defecto realiza un borrado logical marcando el producto como `archived` (ocultándolo de la tienda pública pero preservando su historial de ventas e inventario). Se ofrece una acción explícita de "Eliminación Permanente" con confirmación de advertencia que borra la fila en SQL (en cascada con sus fotos) y remueve el asset de Cloudinary.
 - **Justificación:** Salvaguarda la integridad referencial y las métricas comerciales de pedidos previos, a la vez que permite purgar pruebas o productos creados por error.
 
 ### ADR-10: Auditoría Kardex Obligatoria y Restricción Atómica de Stock No Negativo
@@ -245,6 +272,15 @@
 ### ADR-12: Prevención de Condiciones de Carrera (Race Conditions) y Rate Limiting en Capa de Aplicación
 - **Decisión:** Proteger las mutaciones de stock con comprobaciones condicionales atómicas (`WHERE stock >= delta`) y limitar la frecuencia de peticiones en endpoints sensibles mediante algoritmo sliding window en memoria.
 - **Justificación:** Previene la sobreventa ante compras simultáneas concurrentes y neutraliza intentos de denegación de servicio o subidas masivas automatizadas de imágenes.
+
+### ADR-13: Adopción del Estándar Impeccable Craft Floor y Erradicación de AI Slop
+- **Decisión:** Aplicar rigurosamente los principios de diseño de la skill `impeccable`:
+  1. Prohibir kickers o eyebrow labels sobre encabezados h1/h2 en todo el sitio.
+  2. Desterrar el monoespaciado como disfraz decorativo; limitarlo exclusivamente a mediciones científicas, SKUs y precios tabulares (`tabular-nums`).
+  3. Descartar filtros destructivos como grayscale sobre productos en favor de la verdad visual del producto.
+  4. Atender las superficies del navegador (scrollbars a medida, selección de alto contraste, caret color).
+  5. Asegurar contraste mínimo WCAG AA (≥4.5:1) en todos los textos secundarios y placeholders.
+- **Justificación:** Los modelos de IA tienden a repetir clichés visuales (tarjetas idénticas, kickers en mayúsculas, filtros grises, botones en monospace). La adopción del Craft Floor garantiza una interfaz única, deportiva, de alto impacto y orientada a atletas reales.
 
 ---
 
@@ -262,7 +298,9 @@
 | **Fase 7** | Administración de Stock e Inventario (Kardex audit trail) | 🟢 Completada |
 | **Fase 8** | Despliegue en la Nube (Vercel, Fly.io, Neon, Cloudinary, Clerk) | 🟢 **Completada** |
 | **Fase 9** | Hardening, Concurrencia de Stock, Rate Limiting & Backups | 🟢 **Completada** |
-| **Fase 10** | Expansión V2 (pedidos persistentes, pasarelas de pago, clientes, finanzas) | ⚪ Planificada para V2 |
+| **Fase 10** | Auditoría Impeccable: Erradicación de AI Slop y Craft Polish | 🟢 **Completada** |
+| **Fase 11** | Expansión V2 (pedidos persistentes, pasarelas de pago, clientes, finanzas) | ⚪ Planificada para V2 |
+
 
 
 

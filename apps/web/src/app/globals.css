@@ -21,23 +21,59 @@
 
 html {
   scroll-behavior: smooth;
+  caret-color: currentColor;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-sans), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  letter-spacing: -0.01em;
+  letter-spacing: -0.015em;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
+/* Tabular numerals for prices, metrics, and timestamps */
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1;
+}
+
+/* Browser Surfaces: Selection */
 ::selection {
-  background-color: #000000;
+  background-color: #09090b;
   color: #ffffff;
 }
 
 @media (prefers-color-scheme: dark) {
   ::selection {
     background-color: #ffffff;
-    color: #000000;
+    color: #09090b;
   }
 }
+
+/* Browser Surfaces: Focus Ring */
+:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 2px;
+}
+
+/* Browser Surfaces: Custom Minimalist Scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(120, 120, 128, 0.3);
+  border-radius: 0px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(120, 120, 128, 0.6);
+}
+

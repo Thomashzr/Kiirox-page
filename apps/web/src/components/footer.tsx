@@ -20,7 +20,7 @@ export function Footer({ whatsappNumber = '+5491100000000' }: FooterProps) {
               <h4 className="font-sans font-bold text-sm uppercase tracking-wider mb-1">
                 Fórmulas Certificadas
               </h4>
-              <p className="text-xs text-zinc-500 font-normal leading-relaxed">
+              <p className="text-xs text-zinc-600 dark:text-zinc-400 font-sans leading-relaxed">
                 Suplementación deportiva 100% original con trazabilidad garantizada por lote y fabricante.
               </p>
             </div>
@@ -34,7 +34,7 @@ export function Footer({ whatsappNumber = '+5491100000000' }: FooterProps) {
               <h4 className="font-sans font-bold text-sm uppercase tracking-wider mb-1">
                 Envíos a Todo el País
               </h4>
-              <p className="text-xs text-zinc-500 font-normal leading-relaxed">
+              <p className="text-xs text-zinc-600 dark:text-zinc-400 font-sans leading-relaxed">
                 Despachos seguros en 24 a 48 horas con seguimiento en tiempo real de tu encomienda.
               </p>
             </div>
@@ -48,7 +48,7 @@ export function Footer({ whatsappNumber = '+5491100000000' }: FooterProps) {
               <h4 className="font-sans font-bold text-sm uppercase tracking-wider mb-1">
                 Atención para Atletas
               </h4>
-              <p className="text-xs text-zinc-500 font-normal leading-relaxed">
+              <p className="text-xs text-zinc-600 dark:text-zinc-400 font-sans leading-relaxed">
                 Asesoramiento personalizado en timing de carbohidratos, hidratación y gramos de sodio por hora.
               </p>
             </div>
@@ -60,12 +60,12 @@ export function Footer({ whatsappNumber = '+5491100000000' }: FooterProps) {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 flex flex-col md:flex-row items-start md:items-center justify-between gap-8">
         <div>
           <BrandLogo size="md" className="mb-3" />
-          <p className="text-xs text-zinc-500 font-mono max-w-sm">
+          <p className="text-xs text-zinc-600 dark:text-zinc-400 font-sans max-w-sm leading-relaxed">
             Laboratorio de nutrición y suplementos deportivos para atletas de resistencia, maratón y triatlón.
           </p>
         </div>
 
-        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-6 text-xs font-mono uppercase tracking-wider text-zinc-500">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-6 text-xs font-sans font-semibold uppercase tracking-wider text-zinc-600 dark:text-zinc-400">
           <a
             href={`https://wa.me/${whatsappNumber.replace(/[^0-9]/g, '')}?text=Hola%20KIIROX,%20quisiera%20hacer%20una%20consulta`}
             target="_blank"
@@ -85,7 +85,7 @@ export function Footer({ whatsappNumber = '+5491100000000' }: FooterProps) {
       </div>
 
       {/* Copyright Bar */}
-      <div className="border-t border-zinc-100 dark:border-zinc-900 py-6 text-center text-[11px] font-mono text-zinc-400">
+      <div className="border-t border-zinc-200 dark:border-zinc-800 py-6 text-center text-[11px] font-mono tabular-nums text-zinc-500 dark:text-zinc-400">
         &copy; 2026 KIIROX ATHLETICS. Todos los derechos reservados.
       </div>
     </footer>

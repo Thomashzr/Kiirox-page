@@ -22,7 +22,7 @@ export function Navbar({ whatsappNumber = '+5491100000000' }: NavbarProps) {
         </a>
 
         {/* Desktop Navigation Links */}
-        <nav className="hidden md:flex items-center gap-8 text-xs font-mono uppercase tracking-wider text-zinc-600 dark:text-zinc-400">
+        <nav className="hidden md:flex items-center gap-8 text-xs font-sans font-semibold uppercase tracking-wider text-zinc-600 dark:text-zinc-400">
           <a
             href="#catalogo"
             className="hover:text-black dark:hover:text-white transition-colors"
@@ -50,7 +50,7 @@ export function Navbar({ whatsappNumber = '+5491100000000' }: NavbarProps) {
             href={`https://wa.me/${whatsappNumber.replace(/[^0-9]/g, '')}?text=Hola%20KIIROX,%20quisiera%20consultar%20por%20un%20pedido`}
             target="_blank"
             rel="noopener noreferrer"
-            className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-mono uppercase tracking-wider border border-zinc-300 dark:border-zinc-700 hover:border-black dark:hover:border-white text-black dark:text-white transition-colors"
+            className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-sans font-semibold uppercase tracking-wider border border-zinc-300 dark:border-zinc-700 hover:border-black dark:hover:border-white text-black dark:text-white transition-colors cursor-pointer"
             title="Atención directa por WhatsApp"
           >
             <WhatsappLogo size={16} weight="bold" />
@@ -60,14 +60,14 @@ export function Navbar({ whatsappNumber = '+5491100000000' }: NavbarProps) {
           {/* Cart Drawer Trigger */}
           <button
             onClick={openDrawer}
-            className="relative inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-mono uppercase tracking-wider border border-zinc-300 dark:border-zinc-700 hover:border-black dark:hover:border-white text-black dark:text-white transition-colors cursor-pointer"
+            className="relative inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-sans font-semibold uppercase tracking-wider border border-zinc-300 dark:border-zinc-700 hover:border-black dark:hover:border-white text-black dark:text-white transition-colors cursor-pointer"
             title="Ver carrito de compras"
             aria-label={`Ver carrito de compras, ${totalItems} items`}
           >
             <ShoppingBag size={16} weight="bold" />
             <span className="hidden sm:inline">Carrito</span>
             {totalItems > 0 && (
-              <span className="inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 text-[10px] font-mono font-bold bg-black text-white dark:bg-white dark:text-black">
+              <span className="inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 text-[10px] font-mono tabular-nums font-bold bg-black text-white dark:bg-white dark:text-black">
                 {totalItems}
               </span>
             )}
@@ -83,7 +83,7 @@ export function Navbar({ whatsappNumber = '+5491100000000' }: NavbarProps) {
             >
               <Show when="signed-out">
                 <SignInButton mode="modal">
-                  <button className="px-3 py-1.5 text-xs font-mono uppercase tracking-wider bg-black dark:bg-white text-white dark:text-black font-semibold hover:bg-zinc-800 dark:hover:bg-zinc-200 transition-colors">
+                  <button className="px-3 py-1.5 text-xs font-sans uppercase tracking-wider bg-black dark:bg-white text-white dark:text-black font-bold hover:bg-zinc-800 dark:hover:bg-zinc-200 transition-colors cursor-pointer">
                     Ingresar
                   </button>
                 </SignInButton>
