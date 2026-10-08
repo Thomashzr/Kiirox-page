@@ -221,6 +221,10 @@
   - Compilación de producción con Turbopack: exitosa en 3.6s (`npm --prefix apps/web run build`).
   - Desplegado en producción en Vercel: `https://kiirox.vercel.app` (`▲ Ready in 37s`, HTTP 200 OK verificado).
 
+- **Instalación de la Skill Apple Design**:
+  - Instalada la skill oficial `apple-design` (`emilkowalski/skills@apple-design`) en `.agents/skills/apple-design`.
+  - Proporciona principios de diseño e ingeniería de interacción de Apple (WWDC): animaciones fluidas con resortes físicos (springs), retroalimentación instantánea en pointer-down, manipulación directa 1:1, interrupciones sin pérdida de velocidad, translucidez con jerarquía de materiales, proyecciones de momentum y tipografía con optical sizing.
+
 ---
 
 ## 🏛️ 3. Registro de Decisiones de Arquitectura (ADRs)
